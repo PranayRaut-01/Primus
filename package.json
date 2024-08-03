@@ -1,0 +1,27 @@
+{
+  "name": "Primus",
+  "version": "1.0.0",
+  "description": "This is a start of a new revolution in data analytics",
+  "main": "index.js",
+  "type":"module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PranayRaut-01/Primus.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/PranayRaut-01/Primus/issues"
+  },
+  "homepage": "https://github.com/PranayRaut-01/Primus#readme",
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "mongoose": "^8.5.2",
+    "redis": "^4.7.0"
+  }
+}
