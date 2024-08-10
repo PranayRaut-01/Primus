@@ -36,7 +36,7 @@ async function initializeAzureOpenAiConnection() {
   }
 }
 
-export async function initializeLlmConnections(usedLLM) {
+export async function initializeModel(usedLLM) {
   try {
     if (process.env.SERVER_ENV == "dev") {
         if(usedLLM == "openai"){
@@ -52,4 +52,4 @@ export async function initializeLlmConnections(usedLLM) {
   }
 }
 
-export { openAiConnection, azureOpenAiConnection };
+export { initializeModel };

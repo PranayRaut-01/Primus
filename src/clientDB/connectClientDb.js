@@ -53,8 +53,23 @@ async function executePgSqlQuery(query) {
   }
 }
 
+async function queryExecuter(dbtype,query){
+  try {
+    if(dbtype == 'mssql'){
+      return await executeMssqlQuery(query)
+    }
+    else if(dbtype == 'pgsql'){
+      return await executePgSqlQuery(query)
+    }
+    else if(dbtype == 'mysql'){
+      return "error"
+    }
+  } catch (error) {
+    console.error(error)
+  }
+}
+
 export {
-    executeMssqlQuery,
-    executePgSqlQuery
+  queryExecuter
 }
 

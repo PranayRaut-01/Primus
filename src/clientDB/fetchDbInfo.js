@@ -34,13 +34,13 @@ async function fetchPGSQLTableSchemas() {
 }
 
 
-async function fetchSchemaFromDb() {
+async function fetchSchemaFromDb(dbtype) {
   try {
     if (process.env.SERVER_ENV == "dev") {
-      if (process.env.USED_DB == "mssql") {
+      if (dbtype == "mssql") {
         return await fetchMSSQLTableSchemas()
       }
-      if (process.env.USED_DB == "pgqsl") {
+      if (dbtype == "pgqsl") {
         return await fetchPGSQLTableSchemas()
       }
     }
@@ -48,6 +48,10 @@ async function fetchSchemaFromDb() {
   } catch (err) {
     console.log(err)
   }
+}
+
+export{
+  fetchSchemaFromDb
 }
 
 
