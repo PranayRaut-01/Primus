@@ -5,10 +5,12 @@ import bodyParser from 'body-parser';
 import {router} from './src/routes/routes.js'; // Note the .mjs extension for modules
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
+import cors from 'cors';
 dotenv.config()
 
 const app = express();
 
+app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
