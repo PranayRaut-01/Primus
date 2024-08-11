@@ -1,15 +1,15 @@
-import { executeMssqlQuery, executePgSqlQuery } from "./connectClientDb"
+import { queryExecuter } from "./connectClientDb.js"
 // IMPORT CLIENT DB SCHEMA
 
 
-async function fetchMSSQLTableSchemas() {
+async function fetchMSSQLTableSchemas(dbDetail) {
   try {
     const query = `
       SELECT TABLE_NAME, COLUMN_NAME, DATA_TYPE
       FROM INFORMATION_SCHEMA.COLUMNS
       ORDER BY TABLE_NAME, ORDINAL_POSITION`;
 
-    const result = await executeMssqlQuery(query)
+    const result = await queryExecuter(dbDetail,query)
     console.log('MSSQL Schema:', schema);
     return result.recordset;
   } catch (err) {
@@ -18,33 +18,33 @@ async function fetchMSSQLTableSchemas() {
 }
 
 
-async function fetchPGSQLTableSchemas() {
+async function fetchPGSQLTableSchemas(dbDetail) {
   try {
     const query = `
       SELECT table_name, column_name, data_type
       FROM information_schema.columns
-      ORDER BY table_name, ordinal_position`;
-
-    const result = await executePgSqlQuery(query)
-    console.log('PostgreSQL Schema:', result.rows);
-    return result.rows;
+      WHERE table_schema = 'public'
+      ORDER BY table_name, ordinal_position
+      `
+    const result = await queryExecuter(dbDetail,query)
+    console.log('PostgreSQL Schema:', result);
+    return result;
   } catch (err) {
     console.error('Error fetching PostgreSQL table schemas:', err);
   }
 }
 
 
-async function fetchSchemaFromDb(dbtype) {
+async function fetchSchemaFromDb(dbDetail) {
   try {
-    if (process.env.SERVER_ENV == "dev") {
-      if (dbtype == "mssql") {
-        return await fetchMSSQLTableSchemas()
+      if (dbDetail.dbtype == "mssql") {
+         const data = await fetchMSSQLTableSchemas(dbDetail)
+         return data
       }
-      if (dbtype == "pgqsl") {
-        return await fetchPGSQLTableSchemas()
+      if (dbDetail.dbtype == "postgresql") {
+      const data =  await fetchPGSQLTableSchemas(dbDetail)
+      return data
       }
-    }
-
   } catch (err) {
     console.log(err)
   }

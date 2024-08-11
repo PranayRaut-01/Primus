@@ -1,4 +1,4 @@
-import { initializeModel } from '../llm_model/llm'
+import { initializeModel } from '../llm_model/llm.js'
 import { ChatPromptTemplate, MessagesPlaceholder} from "@langchain/core/prompts";
 
 function generateFollowupPrompt(userQuery) {

@@ -1,19 +1,15 @@
 import { OpenAI } from "@langchain/openai";
 import { AzureOpenAI } from "@langchain/openai";
-import { openAiConfig, azureOpenAiConfig } from "../../config/llm";
+import { openAiConfig, azureOpenAiConfig } from "../../config/llm.js";
 import * as dotenv from "dotenv";
 
 dotenv.config();
 
-let openAiConnection = null;
-let azureOpenAiConnection = null;
 
-async function initializeOpenAiConnection() {
-    if(openAiConnection)return openAiConnection;
+async function initializeOpenAiConnection(llm) {
   try {
-    const config = await openAiConfig();
-    if (config) {
-      openAiConnection = new OpenAI(config);
+    if (llm.config) {
+      const openAiConnection = new OpenAI(llm.config);
       console.log("OpenAI connection initialized successfully.");
       return openAiConnection;
     }
@@ -22,12 +18,10 @@ async function initializeOpenAiConnection() {
   }
 }
 
-async function initializeAzureOpenAiConnection() {
-    if(azureOpenAiConnection)return azureOpenAiConnection;
+async function initializeAzureOpenAiConnection(llm) {
   try {
-    const config = await azureOpenAiConfig();
-    if (config) {
-      azureOpenAiConnection = new AzureOpenAI(config);
+    if (llm.config) {
+      const azureOpenAiConnection = new AzureOpenAI(llm.config);
       console.log("Azure OpenAI connection initialized successfully.");
       return azureOpenAiConnection;
     }
@@ -36,14 +30,16 @@ async function initializeAzureOpenAiConnection() {
   }
 }
 
-export async function initializeModel(usedLLM) {
+ async function initializeModel(llm) {
   try {
-    if (process.env.SERVER_ENV == "dev") {
-        if(usedLLM == "openai"){
-            return await initializeOpenAiConnection();
+    if (process.env.SERVER == "dev") {
+        if(llm.usedLLM == "openai"){
+            const data =  await initializeOpenAiConnection(llm);
+            return data
         }
-        if(usedLLM == "azureopenai"){
-            return await initializeAzureOpenAiConnection();
+        if(llm.usedLLM == "azureopenai"){
+             const data = await initializeAzureOpenAiConnection(llm);
+             return data
         } 
     }
     // Handle other environments and user preferences if needed

@@ -1,31 +1,19 @@
 import sql from "mssql";
 import pkg from 'pg';
 const { Pool } = pkg;
-import {msSqlConfig,pgSqlConfig} from '../../config/clientDB'
 
-let mssqlConnection = null;
-let pgsqlConnection = null;
-
-async function initializeMsSqlConnection() {
-  if (mssqlConnection) {
-    return mssqlConnection;
-  }
+async function initializeMsSqlConnection(config) {
   try {
-    const config = await msSqlConfig()
-    mssqlConnection = sql.connect(config);
+    const mssqlConnection = sql.connect(config);
     return mssqlConnection;
   } catch (err) {
     console.error('Error initialize to MSSQL:', err);
   }
 }
 
-async function initializePgSqlConnection() {
-  if (pgsqlConnection) {
-    return pgsqlConnection;
-  }
+async function initializePgSqlConnection(config) {
   try {
-    const config = pgSqlConfig();
-    pgsqlConnection = new Pool(config);
+    const pgsqlConnection = new Pool(config);
     await pgsqlConnection.connect();
     return pgsqlConnection;
   } catch (err) {
@@ -33,9 +21,9 @@ async function initializePgSqlConnection() {
   }
 }
 
-async function executeMssqlQuery(query) {
+async function executeMssqlQuery(dbDetail,query) {
     try {
-      const pool = await initializeMsSqlConnection();
+      const pool = await initializeMsSqlConnection(dbDetail.config);
       const result = await pool.request().query(query);
       return result.recordset;
     } catch (err) {
@@ -43,9 +31,9 @@ async function executeMssqlQuery(query) {
     }
   }
 
-async function executePgSqlQuery(query) {
+async function executePgSqlQuery(dbDetail,query) {
   try {
-    const pool = await initializePgSqlConnection();
+    const pool = await initializePgSqlConnection(dbDetail.config);
     const result = await pool.query(query);
     return result.rows;
   } catch (err) {
@@ -53,15 +41,15 @@ async function executePgSqlQuery(query) {
   }
 }
 
-async function queryExecuter(dbtype,query){
+async function queryExecuter(dbDetail,query){
   try {
-    if(dbtype == 'mssql'){
-      return await executeMssqlQuery(query)
+    if(dbDetail.dbtype == 'mssql'){
+      return await executeMssqlQuery(dbDetail,query)
     }
-    else if(dbtype == 'pgsql'){
-      return await executePgSqlQuery(query)
+    else if(dbDetail.dbtype == 'postgresql'){
+      return await executePgSqlQuery(dbDetail,query)
     }
-    else if(dbtype == 'mysql'){
+    else if(dbDetail.dbtype == 'mysql'){
       return "error"
     }
   } catch (error) {

@@ -5,38 +5,66 @@ import { User } from '../models/user.js'
 import {ChatLog} from '../models/chatLogs.js';
 import {authUser} from '../middleware/auth.js'
 import bcrypt from 'bcryptjs';
-import askQuestion from '../agents/agent.js'
+import {askQuestion} from '../agents/agent.js'
 import moment from 'moment'
+import * as dotenv from "dotenv";
+dotenv.config();
 const router = Router();
 
-router.post('/newMessage',authUser, async (req, res) => {
+router.post('/newMessage', async (req, res) => {
   const { email,psid, message,sessionId ,dbtype, newSession = false } = req.body;
 
   try {
 
-    const existingUser = await User.findOne({ email:req.token, isDeleted:false});
-    if (!sessionId) {
-      session = await Session.create({userId:existingUser._id ,psid, isActive: true });
-      sessionId = session._id
-    }
-    const chat_history = await ChatLog.find({sessionId}).projection({"message":1})
+    // const existingUser = await User.findOne({ email:req.token, isDeleted:false});
+    // let session_doc
+    // if (!sessionId) {
+    //   session_doc = await Session.create({userId:existingUser._id ,psid, isActive: true });
+    // }else{
+    //   session_doc = await Session.findOne({userId:existingUser._id });
+    // }
+    // const chat_history = await ChatLog.find({sessionId}).projection({"message":1})
+    console.log("request message : ",message )
 
-    let dbDetail = await DatabaseCredentials.findOne({ userId:existingUser._id,default :true });
-    if (!dbDetail) {
-      dbDetail = await DatabaseCredentials.findOne({ _id:ObjectId("") });
+    let configs={},llm_model
+    console.log(process.env.SERVER)
+    if(process.env.SERVER == 'dev'){
+      configs.dbDetail = {
+        config : {
+        server:  process.env.PG_SERVER,
+        user: process.env.PG_USER,
+        password: process.env.PG_PASSWORD,
+        database: process.env.PG_DB_NAME
+        },
+        dbtype:"postgresql", 
+      }
+      configs.llm_model = {
+        config : {
+          model: process.env.OPENAI_MODEL,
+          temperature: parseFloat(process.env.OPENAI_TEMPERATURE),
+          apiKey: process.env.OPENAI_API_KEY
+        },
+        usedLLM:process.env.LLM
+      }
+    }else{
+      dbDetail = await DatabaseCredentials.findOne({ userId:existingUser._id,default :true });
     }
     
+    if (false && !dbDetail) {
+      dbDetail = await DatabaseCredentials.findOne({ _id:ObjectId("") });// need to handle this
+    }
+  
+    let chat_history = []
+    const response = await askQuestion(message,chat_history,configs.dbDetail,configs.llm_model)
 
-    askQuestion(message,chat_history,dbDetail)
+    // await ChatLog.create({ userId:existingUser._id,psid, message, sessionId });
 
-    await ChatLog.create({ userId:existingUser._id,psid, message, sessionId });
-
-    res.status(200).send({ message: 'Message processed successfully' });
+    res.status(200).send({ message: 'Message processed successfully' , response:response});
   } catch (error) {
     console.error('Error processing message:', error);
     res.status(500).send({ error: 'Server error' });
   }
-});;
+});
 
 router.post('/signup',async (req, res) => {
   const { username, email, password } = req.body;

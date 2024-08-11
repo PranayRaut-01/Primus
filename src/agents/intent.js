@@ -1,6 +1,6 @@
 import { HumanMessage, AIMessage } from "@langchain/core/messages";
 import { ChatPromptTemplate, MessagesPlaceholder, } from "@langchain/core/prompts";
-import { model } from "../../config/llm"
+import { model } from "../../config/llm.js"
 
 
 // Create a function to call the Langchain API
@@ -61,6 +61,26 @@ async function supervisor(userText) {
         console.error(err)
     }
 }
+
+// async function generateQuery(data, dbtype) {
+//     const prompt = `
+//   You are an SQL expert Just identify the given query.
+//   INSTRUCTION 
+//   if any error in correct the query correct it and return updated query. 
+//   else return same query.
+
+//   NOTE : you are restricted to return only query.
+//   QUERY : ${data}
+//   `
+//     const response = await model.invoke(prompt);
+//     console.log(response)
+//     const query = response.content.trim(); // Remove any extra whitespace
+
+//     console.log("Generated query:", query);
+
+//     return query; // Return the query directly as a string
+
+// }
 
 export {
     supervisor
