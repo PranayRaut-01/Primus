@@ -24,9 +24,10 @@ router.post('/newMessage', async (req, res) => {
     //   session_doc = await Session.findOne({userId:existingUser._id });
     // }
     // const chat_history = await ChatLog.find({sessionId}).projection({"message":1})
-    console.log("request message : ",message )
+    // console.log("request message : ",message )
+    
 
-    let configs={},llm_model
+    let configs={}
     console.log(process.env.SERVER)
     if(process.env.SERVER == 'dev'){
       configs.dbDetail = {
@@ -53,11 +54,11 @@ router.post('/newMessage', async (req, res) => {
     if (false && !dbDetail) {
       dbDetail = await DatabaseCredentials.findOne({ _id:ObjectId("") });// need to handle this
     }
-  
-    let chat_history = []
+ let chat_history = []
     const response = await askQuestion(message,chat_history,configs.dbDetail,configs.llm_model)
 
-    // await ChatLog.create({ userId:existingUser._id,psid, message, sessionId });
+      // ChatLog.create({ userId:existingUser._id,psid, message, sessionId });
+      // ChatLog.create({ userId:existingUser._id,psid, message, sessionId })
 
     res.status(200).send({ message: 'Message processed successfully' , response:response});
   } catch (error) {
@@ -70,14 +71,14 @@ router.post('/signup',async (req, res) => {
   const { username, email, password } = req.body;
 
   if (!username || !email || !password) {
-    return res.status(400).json({ error: 'All fields are required' });
+    return res.status(400).json({ status : false ,message: 'All fields are required' });
   }
 
   try {
     // Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res.status(400).json({ error: 'User already exists' });
+      return res.status(400).json({ status : false ,message: 'User already exists' });
     }
 
     // Hash the password
@@ -92,7 +93,7 @@ router.post('/signup',async (req, res) => {
     });
 
     await newUser.save();
-    res.status(201).json({ message: 'User created successfully' });
+    res.status(201).json({ status: true,message: 'Your Account is created successfully' });
   } catch (error) {
     console.error('Error creating user:', error);
     res.status(500).json({ error: 'Server error' });
@@ -106,7 +107,7 @@ router.post('/login', async (req, res) => {
       // Find user in the database
       const user = await User.findOne({ email:username });
       if (!user) {
-          return res.json({ status: false, message: "Invalid username or password" });
+          return res.status(404).json({ status: false, message: "Invalid username or password" });
       }
 
       // Compare the password
@@ -118,7 +119,7 @@ router.post('/login', async (req, res) => {
       // Create JWT token
       const token = jwt.sign({ userId: user.id }, 'Pri%40mus', { expiresIn: '3h' });
 
-      res.status(200).send({ status: true, token });
+      res.status(200).send({ status: true, token ,message: "Welcome to AginoTech"});
   } catch (err) {
       res.status(500).send({ status: false, message: err.message });
   }
