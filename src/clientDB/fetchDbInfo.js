@@ -35,6 +35,23 @@ async function fetchPGSQLTableSchemas(dbDetail) {
 }
 
 
+async function fetchMySQLTableSchemas(dbDetail) {
+  try {
+    const query = `
+      SELECT table_name, column_name, data_type
+      FROM information_schema.columns
+      WHERE table_schema = ?
+      ORDER BY table_name, ordinal_position
+    `;
+    
+    const result = await queryExecuter(dbDetail, query);
+    // console.log('MySQL Schema:', result);
+    return result;
+  } catch (err) {
+    console.error('Error fetching MySQL table schemas:', err);
+  }
+}
+
 async function fetchSchemaFromDb(dbDetail) {
   try {
       if (dbDetail.dbtype == "mssql") {
@@ -44,6 +61,9 @@ async function fetchSchemaFromDb(dbDetail) {
       if (dbDetail.dbtype == "postgresql") {
       const data =  await fetchPGSQLTableSchemas(dbDetail)
       return data
+      }else if(dbDetail.dbtype == 'mysql'){
+        const data = await fetchMySQLTableSchemas(dbDetail)
+        return data
       }
   } catch (err) {
     console.log(err)

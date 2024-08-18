@@ -1,6 +1,8 @@
 import sql from "mssql";
 import pkg from 'pg';
 const { Pool } = pkg;
+import mysql from 'mysql2/promise';
+
 
 async function initializeMsSqlConnection(config) {
   try {
@@ -20,6 +22,18 @@ async function initializePgSqlConnection(config) {
     console.error('Error initialize to PostgreSQL:', err);
   }
 }
+
+async function initializeMySQLConnection(config) {
+  try {
+    const mysqlConnection = await mysql.createConnection(config);
+    console.log('MySQL connection initialized successfully');
+    return mysqlConnection;
+  } catch (err) {
+    console.error('Error initializing MySQL connection:', err);
+    throw err;
+  }
+}
+
 
 async function executeMssqlQuery(dbDetail,query) {
     try {
@@ -41,6 +55,19 @@ async function executePgSqlQuery(dbDetail,query) {
   }
 }
 
+
+async function executeMySQLQuery(dbDetail, query) {
+  try {
+    const connection = await initializeMySQLConnection(dbDetail.config);
+    const [rows] = await connection.execute(query, [dbDetail.config.database]);
+    return rows;
+  } catch (err) {
+    console.error('Error executing MySQL query:', err);
+
+    throw err;
+  }
+}
+
 async function queryExecuter(dbDetail,query){
   try {
     if(dbDetail.dbtype == 'mssql'){
@@ -50,7 +77,10 @@ async function queryExecuter(dbDetail,query){
       return await executePgSqlQuery(dbDetail,query)
     }
     else if(dbDetail.dbtype == 'mysql'){
-      return "error"
+      return await executeMySQLQuery(dbDetail,query)
+    }else{
+      throw new Error("database not mentioned");
+      
     }
   } catch (error) {
     console.error(error)

@@ -12,7 +12,7 @@ dotenv.config();
 const router = Router();
 
 router.post('/newMessage', async (req, res) => {
-  const { email,psid, message,sessionId ,dbtype, newSession = false } = req.body;
+  const { email,psid, message,sessionId ,dbtype, newSession = false, chat_history=[]} = req.body;
 
   try {
 
@@ -28,16 +28,16 @@ router.post('/newMessage', async (req, res) => {
     
 
     let configs={}
-    console.log(process.env.SERVER)
-    if(process.env.SERVER == 'dev'){
+    console.log(process.env.SERVER_ENV)
+    if(process.env.SERVER_ENV == 'dev'){
       configs.dbDetail = {
         config : {
-        server:  process.env.PG_SERVER,
-        user: process.env.PG_USER,
-        password: process.env.PG_PASSWORD,
-        database: process.env.PG_DB_NAME
+        host:  process.env.SERVER,
+        user: process.env.USER_NAME,
+        password: process.env.PASSWORD,
+        database: process.env.DB_NAME
         },
-        dbtype:"postgresql", 
+        dbtype:process.env.DB_TYPE, 
       }
       configs.llm_model = {
         config : {
@@ -54,7 +54,7 @@ router.post('/newMessage', async (req, res) => {
     if (false && !dbDetail) {
       dbDetail = await DatabaseCredentials.findOne({ _id:ObjectId("") });// need to handle this
     }
- let chat_history = []
+//  let chat_history = []
     const response = await askQuestion(message,chat_history,configs.dbDetail,configs.llm_model)
 
       // ChatLog.create({ userId:existingUser._id,psid, message, sessionId });

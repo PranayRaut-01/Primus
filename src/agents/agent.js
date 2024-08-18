@@ -1,6 +1,6 @@
 import { HumanMessage, AIMessage } from "@langchain/core/messages";
 import { ChatOpenAI } from "@langchain/openai";
-import { ChatPromptTemplate, MessagesPlaceholder, } from "@langchain/core/prompts";
+import { ChatPromptTemplate, MessagesPlaceholder } from "@langchain/core/prompts";
 import { DynamicTool } from "@langchain/core/tools";
 import { createOpenAIFunctionsAgent, AgentExecutor } from "langchain/agents";
 
@@ -34,7 +34,7 @@ async function callAgent(input, chat_history=[], schema, dbDetail, llm) {
                     const query = input.trim(); // Since input should already be the generated query
                     const sql_result = await queryExecuter(dbDetail, query); // Assuming this is the function to execute the query
                     result.SQL_query = input
-                    result.BD_response = sql_result
+                    result.DB_response = sql_result
                     console.log("Response from SQL query: ", sql_result);
 
                     // Process the response based on the type of query
@@ -79,7 +79,7 @@ async function callAgent(input, chat_history=[], schema, dbDetail, llm) {
             dbtype: dbDetail.dbtype
         });
 
-        response =await generateJson(response.output, result.SQL_query ? result.SQL_query : "",model)
+        response = await generateJson(response.output, result.SQL_query ? result.SQL_query : "",model)
         result.agent = response
         return result;
 
@@ -116,24 +116,24 @@ async function generateJson(data, query, model) {
   
     `
     const response = await model.invoke(prompt);
-    console.log(response)
     const jsonData = response.content.replace(/```json\n|```/g, '').trim() // Remove any extra whitespace
-
+    console.log("generate json data ",jsonData)
     return JSON.parse(jsonData); // Return the query directly as a string
 
 }
 
+
+
 async function askQuestion(input, chat_history = [], dbDetail, llm) {
     try {
-        const schema =await fetchSchemaFromDb(dbDetail)
+        // chat_history = await parseChatHistory(chat_history)
+        // console.log(chat_history)
+        const schema = await fetchSchemaFromDb(dbDetail)
         const response = await callAgent(input, chat_history, JSON.stringify(schema), dbDetail, llm)
-
-        chat_history.push(new HumanMessage(input));
-        chat_history.push(new AIMessage(response));
-
+        
         return {
             agent: response,
-            chat_history: chat_history
+            // chat_history: chathistory
         }
     } catch (err) {
         console.error(err)
