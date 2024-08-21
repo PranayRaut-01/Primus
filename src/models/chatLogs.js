@@ -9,10 +9,6 @@ const chatLogSchema = new Schema({
         required: true,
         ref: 'User'
     },
-    sender : {
-        type : String,
-        Enum :["customer", "AIagent"]
-    },
     psid: { type: String, required: true },
     sessionId : {
         type: Schema.Types.ObjectId,
@@ -20,7 +16,7 @@ const chatLogSchema = new Schema({
         ref: 'Session'
     },
     message: {
-        type: String,
+        type: Object,
         required: true
     },
     context: {

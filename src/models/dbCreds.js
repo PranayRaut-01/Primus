@@ -9,9 +9,8 @@ const databaseCredentialsSchema = new Schema({
     ref: 'User',
     required: true
   },
-  databaseType: {
+  dbtype: {
     type: String,
-    enum: ['mysql', 'mongodb'], // Add more types as needed
     required: true
   },
   host: {
@@ -25,7 +24,7 @@ const databaseCredentialsSchema = new Schema({
     type: Number,
     required:true
   },
-  databaseName: {
+  database: {
     type: String,
     required: true
   },
@@ -36,6 +35,10 @@ const databaseCredentialsSchema = new Schema({
   password: {
     type: String,
     required: true
+  },
+  schema:{
+    type:Object,
+    default:{}
   }
 });
 

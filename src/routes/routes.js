@@ -8,6 +8,7 @@ import bcrypt from 'bcryptjs';
 import {askQuestion} from '../agents/agent.js'
 import moment from 'moment'
 import * as dotenv from "dotenv";
+import { Schema } from 'mongoose';
 dotenv.config();
 const router = Router();
 
@@ -16,20 +17,21 @@ router.post('/newMessage', async (req, res) => {
 
   try {
 
-    // const existingUser = await User.findOne({ email:req.token, isDeleted:false});
-    // let session_doc
-    // if (!sessionId) {
-    //   session_doc = await Session.create({userId:existingUser._id ,psid, isActive: true });
-    // }else{
-    //   session_doc = await Session.findOne({userId:existingUser._id });
-    // }
-    // const chat_history = await ChatLog.find({sessionId}).projection({"message":1})
-    // console.log("request message : ",message )
+    const existingUser = await User.findOne({ email:email});
+    let session_doc
+    if (!sessionId) {
+      session_doc = await Session.create({userId:existingUser._id ,psid, isActive: true });
+    }else{
+      session_doc = await Session.findOne({userId:existingUser._id });
+    }
+    const chat_history = await ChatLog.find({sessionId})
+    console.log("request message : ",message )
     
 
     let configs={}
     console.log(process.env.SERVER_ENV)
     if(process.env.SERVER_ENV == 'dev'){
+      const data = await DatabaseCredentials.findOne({ userId:existingUser._id });
       configs.dbDetail = {
         config : {
         host:  process.env.SERVER,
@@ -38,6 +40,8 @@ router.post('/newMessage', async (req, res) => {
         database: process.env.DB_NAME
         },
         dbtype:process.env.DB_TYPE, 
+        userId:existingUser._id,
+        schema:data.schema
       }
       configs.llm_model = {
         config : {
@@ -48,19 +52,40 @@ router.post('/newMessage', async (req, res) => {
         usedLLM:process.env.LLM
       }
     }else{
-      dbDetail = await DatabaseCredentials.findOne({ userId:existingUser._id,default :true });
+    // will handle this later 
+      configs.dbDetail = await DatabaseCredentials.findOne({ userId:existingUser._id });
+      configs.dbDetail = {
+        config : {
+        host:  dbDetail.host,
+        user: dbDetail.username,
+        password: dbDetail.password,
+        database: dbDetail.database
+        }
+      }
+      configs.llm_model = {
+        config : {
+          model: process.env.OPENAI_MODEL,
+          temperature: parseFloat(process.env.OPENAI_TEMPERATURE),
+          apiKey: process.env.OPENAI_API_KEY
+        },
+        usedLLM:process.env.LLM
+      }
     }
     
     if (false && !dbDetail) {
       dbDetail = await DatabaseCredentials.findOne({ _id:ObjectId("") });// need to handle this
     }
-//  let chat_history = []
-    const response = await askQuestion(message,chat_history,configs.dbDetail,configs.llm_model)
 
-      // ChatLog.create({ userId:existingUser._id,psid, message, sessionId });
+    session_doc.input = message;
+    session_doc.chat_history = chat_history;
+    session_doc.dbDetail = configs.dbDetail;
+    session_doc.llm_model = configs.llm_model;
+    const response = await askQuestion(session_doc)
+
+    ChatLog.create({ userId:existingUser._id,psid, message:response.chat_history, sessionId,context: { agent:response.agent?response.agent:"",SQL_query:response.SQL_query?response.SQL_query:"",DB_response:response.DB_response?response.DB_response:""}});
       // ChatLog.create({ userId:existingUser._id,psid, message, sessionId })
 
-    res.status(200).send({ message: 'Message processed successfully' , response:response});
+    res.status(200).send({ message: 'Message processed successfully' , agent:response.agent?response.agent:"",SQL_query:response.SQL_query?response.SQL_query:"",DB_response:response.DB_response?response.DB_response:""});
   } catch (error) {
     console.error('Error processing message:', error);
     res.status(500).send({ error: 'Server error' });

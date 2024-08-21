@@ -79,8 +79,7 @@ async function queryExecuter(dbDetail,query){
     else if(dbDetail.dbtype == 'mysql'){
       return await executeMySQLQuery(dbDetail,query)
     }else{
-      throw new Error("database not mentioned");
-      
+      throw new Error("database not mentioned"); 
     }
   } catch (error) {
     console.error(error)

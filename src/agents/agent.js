@@ -6,14 +6,11 @@ import { createOpenAIFunctionsAgent, AgentExecutor } from "langchain/agents";
 
 import { queryExecuter } from "../clientDB/connectClientDb.js"
 import { fetchSchemaFromDb } from "../clientDB/fetchDbInfo.js"
-import { initializeModel } from '../llm_model/llm.js'
-import { generateFollowupPrompt } from './prompt.js'
+import {DatabaseCredentials} from "../models/dbCreds.js"
+import { generateFollowupPrompt,generateJsonPrompt } from './prompt.js'
 
-async function callAgent(input, chat_history=[], schema, dbDetail, llm) {
+async function callAgent(input, chat_history=[], schema, dbDetail, llm,session_doc) {
     try {
-
-        const result = {}
-        // const model = await initializeModel(llm)
         const model = new ChatOpenAI(llm.config);
         const prompts = generateFollowupPrompt()
         const prompt = ChatPromptTemplate.fromMessages([
@@ -33,13 +30,13 @@ async function callAgent(input, chat_history=[], schema, dbDetail, llm) {
                     // Ensure the input is directly the SQL query or passed appropriately
                     const query = input.trim(); // Since input should already be the generated query
                     const sql_result = await queryExecuter(dbDetail, query); // Assuming this is the function to execute the query
-                    result.SQL_query = input
-                    result.DB_response = sql_result
+                    session_doc.SQL_query = input
+                    session_doc.DB_response = sql_result
                     console.log("Response from SQL query: ", sql_result);
 
                     // Process the response based on the type of query
                     if (sql_result && sql_result.length > 0) {
-                        return `Query executed successfully. Here are the results: ${JSON.stringify(sql_result)}`;
+                        return `Query executed successfully. Here are the generated sql query: ${query}`;
                     } else {
                         return "No results found for the query.";
                     }
@@ -79,9 +76,9 @@ async function callAgent(input, chat_history=[], schema, dbDetail, llm) {
             dbtype: dbDetail.dbtype
         });
 
-        response = await generateJson(response.output, result.SQL_query ? result.SQL_query : "",model)
-        result.agent = response
-        return result;
+        response = await generateJson(response.output, session_doc.SQL_query ? session_doc.SQL_query : "",model)
+        session_doc.agent = response
+        return session_doc;
 
 
     } catch (error) {
@@ -90,31 +87,7 @@ async function callAgent(input, chat_history=[], schema, dbDetail, llm) {
 }
 
 async function generateJson(data, query, model) {
-    const prompt = `
-  Given the following string input, please convert it into JSON format with the keys as described below:
-  
-  Input String:${data}
-  sql Query :${query}
-  
-  **JSON Format:**
-  
-  json
-  {
-    "response": "[summary of response based on the input string]",
-    "followup": ["option 1", "option 2", "option 3" (detect follow-up questions from the string) if any else []],
-    "insight": "[if the string contains data that resembles a database output, provide relevant insights here]" else null,
-    "query_description": "[describe the given SQL query if applicable]"
-  }
-  
-  
-  **Instructions:**
-  
-  1. Analyze the string for its content and summarize the main response.
-  2. Identify any follow-up questions within the string and list them under the "followup" key, ensuring to return an empty array if no follow-ups are found.
-  3. Look for any patterns or data that suggest it originates from a database, and provide insights if applicable; otherwise, set this to null.
-  4. If the input string includes an SQL query, provide a description of it under the "query_description" key.
-  
-    `
+    const prompt = await generateJsonPrompt(data,query)
     const response = await model.invoke(prompt);
     const jsonData = response.content.replace(/```json\n|```/g, '').trim() // Remove any extra whitespace
     console.log("generate json data ",jsonData)
@@ -122,19 +95,50 @@ async function generateJson(data, query, model) {
 
 }
 
-
-
-async function askQuestion(input, chat_history = [], dbDetail, llm) {
+async function chatHistory(chat_history) {
     try {
-        // chat_history = await parseChatHistory(chat_history)
-        // console.log(chat_history)
-        const schema = await fetchSchemaFromDb(dbDetail)
-        const response = await callAgent(input, chat_history, JSON.stringify(schema), dbDetail, llm)
-        
-        return {
-            agent: response,
-            // chat_history: chathistory
+        const new_chatHistory = [];
+        for(let i=0;i<chat_history.length;i++){
+            new_chatHistory.push(new HumanMessage({
+                content:chat_history[i]['message'][0]['human']
+            }))
+            new_chatHistory.push(new AIMessage({
+                content:chat_history[i]['message'][0]['agent']
+            }))
         }
+        return new_chatHistory
+    } catch (error) {
+        
+    }
+}
+
+
+
+async function askQuestion(session_doc) {
+    try {
+        let {input, chat_history, dbDetail, llm_model} = session_doc
+        if(!dbDetail.schema ){
+            try {
+                dbDetail.schema = await fetchSchemaFromDb(dbDetail);
+        
+                // Update the user's database credentials with the new schema
+                const data = await DatabaseCredentials.updateOne(
+                    { userId: session_doc.userId },
+                    { $set: { schema: dbDetail.schema } }
+                );
+                console.log(data)
+            } catch (error) {
+                console.error("Error fetching schema or updating the database:", error);
+                // Handle error appropriately, maybe return or throw
+            }
+        }
+        chat_history = await chatHistory(chat_history) 
+        session_doc = await callAgent(input, chat_history, JSON.stringify(dbDetail.schema), dbDetail, llm_model,session_doc)
+        session_doc.chat_history = {
+            human:input,
+            agent:session_doc?.agent?.response
+        }
+       return session_doc
     } catch (err) {
         console.error(err)
     }
