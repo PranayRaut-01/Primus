@@ -40,7 +40,7 @@ const databaseCredentialsSchema = new Schema({
     type:Object,
     default:{}
   }
-});
+},{ timestamps: true });
 
 const DatabaseCredentials = mongoose.model('DatabaseCredentials', databaseCredentialsSchema);
 
