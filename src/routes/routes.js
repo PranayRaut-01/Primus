@@ -82,10 +82,26 @@ router.post('/newMessage', async (req, res) => {
     session_doc.llm_model = configs.llm_model;
     const response = await askQuestion(session_doc)
 
-    ChatLog.create({ userId:existingUser._id,psid, message:response.chat_history, sessionId,context: { agent:response.agent?response.agent:"",SQL_query:response.SQL_query?response.SQL_query:"",DB_response:response.DB_response?response.DB_response:""}});
-      // ChatLog.create({ userId:existingUser._id,psid, message, sessionId })
+    ChatLog.create({ 
+      userId:existingUser._id,psid, 
+      message:response.chat_history, 
+      sessionId,
+      context: { 
+        agent:response.agent?response.agent:"",
+        query_description: response.query_description?response.query_description:"",
+        followup:response.followup?response.followup:"",
+        SQL_query:response.SQL_query?response.SQL_query:"",
+        DB_response:response.DB_response?response.DB_response:"",
+      }});
 
-    res.status(200).send({ message: 'Message processed successfully' , agent:response.agent?response.agent:"",SQL_query:response.SQL_query?response.SQL_query:"",DB_response:response.DB_response?response.DB_response:""});
+    res.status(200).send({ 
+      message: 'Message processed successfully' , 
+      agent:response.agent?response.agent:"",
+      query_description: response.query_description?response.query_description:"",
+      followup:response.followup?response.followup:"",
+      SQL_query:response.SQL_query?response.SQL_query:"",
+      DB_response:response.DB_response?response.DB_response:"",
+    });
   } catch (error) {
     console.error('Error processing message:', error);
     res.status(500).send({ error: 'Server error' });

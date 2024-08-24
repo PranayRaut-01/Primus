@@ -8,6 +8,7 @@ import { queryExecuter } from "../clientDB/connectClientDb.js"
 import { fetchSchemaFromDb } from "../clientDB/fetchDbInfo.js"
 import {DatabaseCredentials} from "../models/dbCreds.js"
 import { generateFollowupPrompt,generateJsonPrompt } from './prompt.js'
+import { modelNames } from "mongoose";
 
 async function callAgent(input, chat_history=[], schema, dbDetail, llm,session_doc) {
     try {
@@ -23,26 +24,54 @@ async function callAgent(input, chat_history=[], schema, dbDetail, llm,session_d
         const customTool = new DynamicTool({
             name: "sql_query_executor",
             description: "Execute SQL queries and return results",
-            func: async (input, dbtype = "pgsql") => {
-                try {
-                    console.log("Input to the tool: ", input);
-
-                    // Ensure the input is directly the SQL query or passed appropriately
-                    const query = input.trim(); // Since input should already be the generated query
-                    const sql_result = await queryExecuter(dbDetail, query); // Assuming this is the function to execute the query
-                    session_doc.SQL_query = input
-                    session_doc.DB_response = sql_result
-                    console.log("Response from SQL query: ", sql_result);
-
-                    // Process the response based on the type of query
-                    if (sql_result && sql_result.length > 0) {
-                        return `Query executed successfully. Here are the generated sql query: ${query}`;
-                    } else {
-                        return "No results found for the query.";
+            func: async (input) => {
+                const maxRetries = 1; // Number of retry attempts
+                let attempt = 0;
+            
+                // Function to execute the SQL query with retries
+                const executeQuery = async (query) => {
+                    try {
+                        console.log("Input to the tool: ", query);
+            
+                        // Execute the SQL query
+                        const sql_result = await queryExecuter(dbDetail, query);
+            
+                        session_doc.SQL_query = query;
+                        session_doc.DB_response = sql_result;
+                        console.log("Response from SQL query: ", sql_result);
+            
+                        // Process the response
+                        if (sql_result && sql_result.length > 0) {
+                            return `Query executed successfully. Here is the generated SQL query: ${query}`;
+                        } else {
+                            return "No results found for the query.";
+                        }
+                    } catch (error) {
+                        console.error("Error in custom tool function: ", error);
+            
+                        // Check if the error is a timeout error or other network-related errors
+                        if (error.message.includes("ETIMEDOUT") || error.message.includes("ECONNREFUSED")) {
+                            throw error; // Re-throw the error to handle it in the retry logic
+                        } else {
+                            // If another error occurs, return the error message immediately
+                            return `There was an error processing your request: ${error.message}`;
+                        }
                     }
-                } catch (error) {
-                    console.error("Error in custom tool function: ", error);
-                    return "There was an error processing your request.";
+                };
+            
+                while (attempt < maxRetries) {
+                    try {
+                        const query = input.trim(); // Ensure input is the SQL query
+                        return await executeQuery(query);
+                    } catch (error) {
+                        attempt++;
+                        console.log(`Retrying query... Attempt ${attempt} of ${maxRetries}`);
+            
+                        // If maximum retries reached, return a timeout error message
+                        if (attempt >= maxRetries) {
+                            return "There was an error processing your request due to a timeout. Please try again later.";
+                        }
+                    }
                 }
             }
         });
@@ -75,9 +104,13 @@ async function callAgent(input, chat_history=[], schema, dbDetail, llm,session_d
             schema: schema,
             dbtype: dbDetail.dbtype
         });
-
-        response = await generateJson(response.output, session_doc.SQL_query ? session_doc.SQL_query : "",model)
-        session_doc.agent = response
+        session_doc.agent_history = `${response.output}+\n ${session_doc.SQL_query?session_doc.SQL_query:""}`
+        session_doc.agent = response.output
+        if(session_doc.DB_response && session_doc.SQL_query){
+            const data = await generateJson(input, session_doc.SQL_query,model)
+            session_doc.query_description = data.query_description?data.query_description:null
+            session_doc.followup = data.followup?data.followup:null
+        }
         return session_doc;
 
 
@@ -90,7 +123,7 @@ async function generateJson(data, query, model) {
     const prompt = await generateJsonPrompt(data,query)
     const response = await model.invoke(prompt);
     const jsonData = response.content.replace(/```json\n|```/g, '').trim() // Remove any extra whitespace
-    console.log("generate json data ",jsonData)
+    // console.log("generate json data ",jsonData)
     return JSON.parse(jsonData); // Return the query directly as a string
 
 }
@@ -134,9 +167,11 @@ async function askQuestion(session_doc) {
         }
         chat_history = await chatHistory(chat_history) 
         session_doc = await callAgent(input, chat_history, JSON.stringify(dbDetail.schema), dbDetail, llm_model,session_doc)
+        console.log(session_doc)
+       
         session_doc.chat_history = {
             human:input,
-            agent:session_doc?.agent?.response
+            agent:session_doc?.agent_history??""
         }
        return session_doc
     } catch (err) {
