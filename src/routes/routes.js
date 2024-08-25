@@ -23,7 +23,7 @@ router.post('/newMessage', async (req, res) => {
     if (!sessionId) {
       session_doc = await Session.create({userId:existingUser._id ,psid, isActive: true });
     }else{
-      session_doc = await Session.findOne({userId:existingUser._id });
+      session_doc = await Session.findOne({_id:sessionId});
     }
     const chat_history = await ChatLog.find({sessionId})
     console.log("request message : ",message )
@@ -73,20 +73,20 @@ router.post('/newMessage', async (req, res) => {
       }
     }
     
-    if (false && !dbDetail) {
-      dbDetail = await DatabaseCredentials.findOne({ _id:ObjectId("") });// need to handle this
-    }
-
     session_doc.input = message;
     session_doc.chat_history = chat_history;
     session_doc.dbDetail = configs.dbDetail;
     session_doc.llm_model = configs.llm_model;
+    // Save the updated session document
+    if(!sessionId){
+      await session_doc.save();
+    }
     const response = await askQuestion(session_doc)
 
-    ChatLog.create({ 
+    const chatLogId = await ChatLog.create({ 
       userId:existingUser._id,psid, 
       message:response.chat_history, 
-      sessionId,
+      sessionId:session_doc._id,
       context: { 
         agent:response.agent?response.agent:"",
         query_description: response.query_description?response.query_description:"",
@@ -97,6 +97,8 @@ router.post('/newMessage', async (req, res) => {
 
     res.status(200).send({ 
       message: 'Message processed successfully' , 
+      sessionId:session_doc._id,
+      chatLogId:chatLogId._id,
       agent:response.agent?response.agent:"",
       query_description: response.query_description?response.query_description:"",
       followup:response.followup?response.followup:"",

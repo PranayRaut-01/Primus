@@ -29,9 +29,15 @@ const sessionSchema = new Schema({
   chat_history:{
     type:Array,
     default : []
+  },
+  dbDetail:{
+    type:Object
+  },
+  llm_model:{
+    type:Object
   }
 
-});
+},{ timestamps: true });
 
 const Session = mongoose.model('Session', sessionSchema);
 

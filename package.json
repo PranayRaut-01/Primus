@@ -23,10 +23,12 @@
     "@langchain/community": "^0.2.20",
     "@langchain/core": "^0.2.23",
     "@langchain/openai": "^0.0.10",
+    "aws-sdk": "^2.1682.0",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.20.2",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
+    "exceljs": "^4.4.0",
     "express": "^4.19.2",
     "jsonwebtoken": "^9.0.2",
     "langchain": "^0.2.12",
@@ -36,6 +38,7 @@
     "mysql2": "^3.11.0",
     "nodemon": "^3.1.4",
     "pg": "^8.12.0",
-    "redis": "^4.7.0"
+    "redis": "^4.7.0",
+    "url": "^0.11.4"
   }
 }

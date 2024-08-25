@@ -23,7 +23,7 @@ const chatLogSchema = new Schema({
         type: Schema.Types.Mixed,
         default: {}
     }
-});
+},{ timestamps: true });
 
 const ChatLog = mongoose.model('ChatLog', chatLogSchema);
 

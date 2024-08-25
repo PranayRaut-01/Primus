@@ -1,5 +1,5 @@
 
-function generateFollowupPrompt() {
+function generateAgentPrompt() {
     try {
         return `
         NAME: Agent Agino
@@ -41,7 +41,7 @@ function generateFollowupPrompt() {
                 `
 
     } catch (error) {
-        console.error("Error generating followup prompt", error);
+        console.error("Error generating agent prompt", error);
     }
 }
 
@@ -73,7 +73,36 @@ async function generateJsonPrompt(data, query) {
     }
 }
 
+
+async function queryExecuter_prompt(input_string) {
+    try {
+        return `
+       Given the following input string, identify and separate the SQL query from the data required by the user. Ensure that any newline characters (\n) in the SQL query are removed. 
+
+1. Extract the SQL query from the input string.
+2. Identify the data requirement mentioned in the input and format the 'response' to reflect that specific requirement.
+3. If a SQL query is found, return the 'response' in the format "Data generated successfully for {data_requirement}" where '{data_requirement}' is the specific data mentioned in the input string.
+4. If no SQL query is found, return the 'sql_query' field as an empty string.
+
+Return the output in JSON format with the following structure:
+
+{
+  "response": "Data generated successfully for {data_requirement}",
+  "sql_query": "SQL query"
+}
+
+Input: ${input_string}
+
+Output:
+
+        `
+    } catch (error) {
+        console.error("Error generating queryExecuter prompt", error)
+    }
+}
+
 export {
-    generateFollowupPrompt,
-    generateJsonPrompt
+    generateAgentPrompt,
+    generateJsonPrompt,
+    queryExecuter_prompt
 }
