@@ -3,7 +3,8 @@ import {Session} from '../models/session.js'
 import { DatabaseCredentials } from '../models/dbCreds.js'
 import { User } from '../models/user.js'
 import {ChatLog} from '../models/chatLogs.js';
-import {authUser} from '../middleware/auth.js'
+import {authUser} from '../middleware/auth.js';
+import {dbConfigStr} from '../models/dbConfigStr.js'
 import bcrypt from 'bcryptjs';
 import {askQuestion} from '../agents/agent.js'
 import moment from 'moment'
@@ -166,8 +167,84 @@ router.post('/login', async (req, res) => {
   }
 });
 
-router.post('/dbDetails',authUser,async (req,res)=>{
+router.get('/database',authUser,async (req,res)=>{
 
+  const data = await dbConfigStr.find({})
+  res.status(200).json({status:true,data})
 })
+
+router.get('/chatHistory',authUser,async (req,res)=>{
+  const user = req.token
+
+  const sessions = Session.aggregate([
+    { $match: { userId: mongoose.Types.ObjectId(user) } },
+    {
+      $lookup: {
+        from: 'chatLogs',
+        localField: '_id',
+        foreignField: 'sessionId',
+        as: 'messages',
+      },
+    },
+    {
+      $addFields: {
+        lastUserMessage: {
+          $last: {
+            $filter: {
+              input: '$messages',
+              as: 'message',
+              cond: { $eq: ['$$message.sender', 'user'] },
+            },
+          },
+        },
+      },
+    },
+    {
+      $project: {
+        startTime: 1,
+        endTime: 1,
+        'lastUserMessage.content': 1,
+        'lastUserMessage.timestamp': 1,
+      },
+    },
+  ]);
+
+  res.status(200).json({status:true,data:sessions})
+})
+
+router.get('/chatlogBySessionId',authUser,async(req,res)=>{
+  const {sessionId} = req.query.sessionId
+
+  const chatHistory =  await ChatLog.find({sessionId}).select('message ')
+  return res.status(200).json({status:true,data:chatHistory})
+})
+
+router.post('/shopifyDetails',authUser,async (req,res)=>{
+  
+    const { shopName, apiKey, apiSecret, shopLink, accessToken } = req.body;
+
+    if (!shopName || !apiKey || !apiSecret || !shopLink || !accessToken) {
+        return res.status(400).json({ error: 'All fields are required' });
+    }
+
+    try {
+        const newShop = new Shop({
+            shopName,
+            apiKey: encrypt(apiKey),
+            apiSecret: encrypt(apiSecret),
+            shopLink,
+            accessToken: encrypt(accessToken),
+        });
+
+        await newShop.save();
+
+        res.status(201).json({ message: 'Shopify details saved successfully', shop: newShop });
+    } catch (error) {
+        console.error('Error saving Shopify details:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+
 
 export  {router};
