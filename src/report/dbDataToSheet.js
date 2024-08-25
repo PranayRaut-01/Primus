@@ -55,7 +55,7 @@ async function convertJsonToExcel(json, filePath){
 
     await workbook.xlsx.writeFile(filePath);
     } catch (error) {
-        console.error(`Error converting file from convertJsonToExcel: ${err.message}`)
+        console.error(`Error converting file from convertJsonToExcel: ${error.message}`)
     } 
 };
 

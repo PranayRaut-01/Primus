@@ -7,6 +7,7 @@ import {authUser} from '../middleware/auth.js';
 import {dbConfigStr} from '../models/dbConfigStr.js'
 import bcrypt from 'bcryptjs';
 import {askQuestion} from '../agents/agent.js'
+import {main} from '../report/dbDataToSheet.js'
 import moment from 'moment'
 import * as dotenv from "dotenv";
 import { Schema } from 'mongoose';
@@ -245,6 +246,17 @@ router.post('/shopifyDetails',authUser,async (req,res)=>{
         console.error('Error saving Shopify details:', error);
         res.status(500).json({ error: 'Internal Server Error' });
     }
+});
+
+router.get('/getSheet', async (req, res) => {
+  try {
+      const {chatLogId} = req.query;
+      const data = await ChatLog.findOne({_id:chatLogId});
+      const url = await main(data.context.DB_response)
+      res.status(200).send({ status: true ,message: "sheet generated successfully",url:url});
+  } catch (err) {
+      res.status(500).send({ status: false, message: err.message });
+  }
 });
 
 
