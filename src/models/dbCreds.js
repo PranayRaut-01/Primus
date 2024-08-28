@@ -34,7 +34,11 @@ const databaseCredentialsSchema = new Schema({
   schema:{
     type:Object,
     default:{}
-  }
+  },
+  aliasName: {
+    type: String,
+    required: true
+  },
 },{ timestamps: true });
 
 const DatabaseCredentials = mongoose.model('DatabaseCredentials', databaseCredentialsSchema);
