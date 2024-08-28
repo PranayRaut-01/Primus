@@ -12,6 +12,7 @@ import {saveDataFromExcleToDb} from '../controller/excleToDb.js'
 import multer from 'multer';
 import bcrypt from 'bcryptjs';
 import path from 'path';
+import jwt from 'jsonwebtoken';
 import * as dotenv from "dotenv";
 import mongoose from 'mongoose';
 import { dirname } from 'path';
