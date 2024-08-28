@@ -203,6 +203,17 @@ router.get('/database', authUser, async (req, res) => {
 
 })
 
+router.get('/connecteddatabases', authUser, async (req, res) => {
+  try {
+      const userId = req.token;
+      const data = await DatabaseCredentials.find({ userId }).$project('_id database aliasName').lean();
+      res.status(200).json({ status: true, data });
+  } catch (error) {
+      console.error('Error fetching connected databases:', error);
+      res.status(500).json({ status: false, message: 'Internal Server Error' });
+  }
+});
+
 router.post('/database', authUser, async (req, res) => {
   try {
     const { userId } = req.token
