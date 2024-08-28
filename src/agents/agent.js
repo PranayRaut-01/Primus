@@ -193,7 +193,7 @@ async function askQuestion(session_doc) {
         
                 // Update the user's database credentials with the new schema
                 const data = await DatabaseCredentials.updateOne(
-                    { userId: session_doc.userId },
+                    { userId: session_doc.userId,database:dbDetail.config.database },
                     { $set: { schema: dbDetail.schema } }
                 );
                 console.log(data)

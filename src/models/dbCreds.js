@@ -14,15 +14,10 @@ const databaseCredentialsSchema = new Schema({
     required: true
   },
   host: {
-    type: String,
-    required: true
+    type: String
   },
-  port: {
-    type: Number
-  },
-  serverIp: {
-    type: Number,
-    required:true
+  server: {
+    type: String
   },
   database: {
     type: String,
