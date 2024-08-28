@@ -36,6 +36,10 @@ const databaseCredentialsSchema = new Schema({
     type: String,
     required: true
   },
+  aliasName: {
+    type: String,
+    required: true
+  },
   schema:{
     type:Object,
     default:{}
