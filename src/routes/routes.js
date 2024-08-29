@@ -35,7 +35,7 @@ router.post('/newMessage',authUser ,async (req, res) => {
     const userId  = new ObjectId(req.token)
     let session_doc
     if (!sessionId) {
-      session_doc = await Session.create({ userId: userId, psid, isActive: true });
+      session_doc = await Session.create({ userId: userId, psid, isActive: true }).lean();
     } else {
       session_doc = await Session.findOne({ _id: sessionId });
     }
@@ -46,7 +46,7 @@ router.post('/newMessage',authUser ,async (req, res) => {
     let llm_model,dbDetail;
     console.log(process.env.SERVER_ENV)
     if (process.env.SERVER_ENV == 'dev1') {
-      const data = await DatabaseCredentials.findOne({ userId: userId,database:database});
+      const data = await DatabaseCredentials.findOne({ userId: userId,database:database}).lean();
       dbDetail = {
         config: {
           host: process.env.SERVER,
@@ -68,7 +68,7 @@ router.post('/newMessage',authUser ,async (req, res) => {
       }
     } else {
       // will handle this later 
-      dbDetail = await DatabaseCredentials.findOne({ userId: userId, database:database});
+      dbDetail = await DatabaseCredentials.findOne({ userId: userId, database:database}).lean();
       dbDetail.config = {
           host: dbDetail.host,
           user: dbDetail.username,
@@ -106,8 +106,23 @@ router.post('/newMessage',authUser ,async (req, res) => {
         followup: response.followup ? response.followup : "",
         SQL_query: response.SQL_query ? response.SQL_query : "",
         DB_response: response.DB_response ? response.DB_response : "",
+        error:response.error?response.error : ""
       }
     });
+
+    if(response.error){
+      res.status(400).send({
+        message: 'some error occured',
+        sessionId: session_doc._id,
+        chatLogId: chatLogId._id,
+        agent: response.agent ? response.agent : "",
+        query_description: response.query_description ? response.query_description : "",
+        followup: response.followup ? response.followup : "",
+        SQL_query: response.SQL_query ? response.SQL_query : "",
+        DB_response: response.DB_response ? response.DB_response : "",
+        error:response.error?response.error:""
+      });
+    }
 
     res.status(200).send({
       message: 'Message processed successfully',

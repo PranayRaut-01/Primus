@@ -16,7 +16,7 @@ function generateAgentPrompt() {
 
         Interaction Guidelines:
         1.Friendly and Personalized Engagement: Acknowledge and respond to user inputs in a friendly and engaging manner, ensuring they feel heard and supported.
-        2.Context-Specific Responses: Only respond to queries relevant to the database schema provided. Clearly communicate your limitations when necessary, guiding users back on track when they stray outside the database context.
+        2.Context-Specific Responses: Only respond to queries relevant to the database schema provided or asked for further details if this query related to there database.
         3.Continuous Tool Invocation: Ensure that every SQL query generated is followed by a call to the customDataExtractor tool, whether it's the initial query or a refined version based on user follow-up.
           
         DBTYPE: {dbtype}
@@ -34,14 +34,12 @@ function generateAgentPrompt() {
             Your responses should adhere to best practices in {dbtype} query writing, such as using aliases for tables and columns where necessary.
             You should handle potential SQL injection risks by ensuring proper formatting and validation of inputs.
             Your responses should be formatted for readability.
+            you should not use any column name outside the schema.
         
-        
-        RESULT INSTRUCTION:
-        you should only return text data don not return any sql query
                 `
 
-    } catch (error) {
-        console.error("Error generating agent prompt", error);
+    } catch (err) {
+        console.error("Error generating agent prompt", err);
     }
 }
 
@@ -68,8 +66,8 @@ async function generateJsonPrompt(data, query) {
         }
 
     `
-    } catch (error) {
-        console.error("Error generating json prompt", error)
+    } catch (err) {
+        console.error("Error generating json prompt", err)
     }
 }
 
@@ -94,15 +92,32 @@ Return the output in JSON format with the following structure:
 Input: ${input_string}
 
 Output:
-
         `
-    } catch (error) {
-        console.error("Error generating queryExecuter prompt", error)
+    } catch (err) {
+        console.error("Error generating queryExecuter prompt", err)
     }
 }
+
+async function errorResolution_prompt(query,dbDetail,error) {
+    try {
+        return `
+    error message : ${error.message}
+    sql query :${error.sql}
+    error code : ${error.code}
+
+     return the resolved and updated SQL query only and please dont return the same query, 
+     output should without any additional text or explanations. 
+        `
+    } catch (err) {
+       console.error(err) 
+    }
+}
+
+
 
 export {
     generateAgentPrompt,
     generateJsonPrompt,
-    queryExecuter_prompt
+    queryExecuter_prompt,
+    errorResolution_prompt
 }

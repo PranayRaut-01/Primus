@@ -10,6 +10,7 @@ async function initializeMsSqlConnection(config) {
     return mssqlConnection;
   } catch (err) {
     console.error('Error initialize to MSSQL:', err);
+    return err
   }
 }
 
@@ -20,6 +21,7 @@ async function initializePgSqlConnection(config) {
     return pgsqlConnection;
   } catch (err) {
     console.error('Error initialize to PostgreSQL:', err);
+    return err
   }
 }
 
@@ -30,7 +32,7 @@ async function initializeMySQLConnection(config) {
     return mysqlConnection;
   } catch (err) {
     console.error('Error initializing MySQL connection:', err);
-    throw err;
+    return err
   }
 }
 
@@ -42,6 +44,7 @@ async function executeMssqlQuery(dbDetail,query) {
       return result.recordset;
     } catch (err) {
       console.error('Error executing MSSQL query:', err);
+      return err
     }
   }
 
@@ -52,6 +55,7 @@ async function executePgSqlQuery(dbDetail,query) {
     return result.rows;
   } catch (err) {
     console.error('Error executing PostgreSQL query:', err);
+    return err
   }
 }
 
@@ -63,8 +67,7 @@ async function executeMySQLQuery(dbDetail, query) {
     return rows;
   } catch (err) {
     console.error('Error executing MySQL query:', err);
-
-    throw err;
+    return err
   }
 }
 

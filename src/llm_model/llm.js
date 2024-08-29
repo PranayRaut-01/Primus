@@ -32,7 +32,6 @@ async function initializeAzureOpenAiConnection(llm) {
 
  async function initializeModel(llm) {
   try {
-    if (process.env.SERVER == "dev") {
         if(llm.usedLLM == "openai"){
             const data =  await initializeOpenAiConnection(llm);
             return data
@@ -41,7 +40,6 @@ async function initializeAzureOpenAiConnection(llm) {
              const data = await initializeAzureOpenAiConnection(llm);
              return data
         } 
-    }
     // Handle other environments and user preferences if needed
   } catch (err) {
     console.error('Error initializing LLM connections:', err);

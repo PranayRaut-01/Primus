@@ -1,5 +1,4 @@
-import { dbSelector } from "../clientDB/connectClientDb"
-import { initializeModel } from '../llm_model/llm'
+import { initializeModel } from '../llm_model/llm.js'
 
 function sqlPrompt(userQuery, tables, dbtype) {
     try {
@@ -24,25 +23,22 @@ function sqlPrompt(userQuery, tables, dbtype) {
     }
 }
 
-async function textToSql(userQuery, tables, dbtype) {
+async function textToSql(userQuery, tables, dbtype,model) {
     try {
-        const model = initializeModel()
         const prompt = sqlPrompt(userQuery, tables, dbtype);
         const response = await model.invoke(prompt);
         const sqlQuery = response.content.replace(/```sql|```/g, '').trim();
         JSON.parse(sqlQuery.trim())
-        return sqlQuery
+        return sqlQuery;
     } catch (err) {
         console.error(err)
     }
 }
 
-async function executeSqlQuery(userQuery, tables, dbtype) {
+async function executeSqlQuery(userQuery, tables, dbtype, llm) {
     try {
-        const query = textToSql(userQuery, tables, dbtype)
-        let pool = await dbSelector(dbtype, query)
-        const result = await pool.request().query(query);
-        return result.recordset;
+        const query = textToSql(userQuery, tables, dbtype,llm)
+        return query
     } catch (err) {
         console.error('Error executing SQL query:', err);
     }

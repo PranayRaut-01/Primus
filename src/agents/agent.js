@@ -7,9 +7,8 @@ import { createOpenAIFunctionsAgent, AgentExecutor } from "langchain/agents";
 import { queryExecuter } from "../clientDB/connectClientDb.js"
 import { fetchSchemaFromDb } from "../clientDB/fetchDbInfo.js"
 import {DatabaseCredentials} from "../models/dbCreds.js"
+import { errorResolution_prompt } from "../agents/prompt.js";
 import { generateAgentPrompt,generateJsonPrompt,queryExecuter_prompt } from './prompt.js'
-import { modelNames } from "mongoose";
-import { response } from "express";
 
 async function callAgent(input, chat_history=[], schema, dbDetail, llm,session_doc) {
     try {
@@ -26,7 +25,7 @@ async function callAgent(input, chat_history=[], schema, dbDetail, llm,session_d
             name: "sql_query_executor",
             description: "Execute SQL queries and return results",
             func: async (input) => {
-                return await getData(input,session_doc,dbDetail)
+                return await getData(input,session_doc,dbDetail,model)
             }
         });
 
@@ -70,7 +69,7 @@ async function callAgent(input, chat_history=[], schema, dbDetail, llm,session_d
 
         if(query_check){
             const data = await extractQuery(session_doc,response.output,model)
-            await getData(data.sql_query,session_doc,dbDetail)
+            await getData(data.sql_query,session_doc,dbDetail,model)
             session_doc.agent_history = `${data.response}, Query generated: ${session_doc.SQL_query?session_doc.SQL_query:""}`
             session_doc.agent = data.response
         }else{
@@ -91,56 +90,43 @@ async function callAgent(input, chat_history=[], schema, dbDetail, llm,session_d
     }
 }
 
-async function getData(input,session_doc,dbDetail) {
+async function getData(input,session_doc,dbDetail,model) {
     {
-        const maxRetries = 1; // Number of retry attempts
+        const maxRetries = 2; 
         let attempt = 0;
-    
-        // Function to execute the SQL query with retries
         const executeQuery = async (query) => {
             try {
+                if (attempt > maxRetries) {
+                    const message = "There was an error processing your request due to a timeout. Please try again later.";
+                    session_doc.error = message
+                    return ;
+                }
                 console.log("Input to the tool: ", query);
-    
-                // Execute the SQL query
                 const sql_result = await queryExecuter(dbDetail, query);
-    
+
+                if (sql_result && sql_result.length > 0) {
                 session_doc.SQL_query = query;
                 session_doc.DB_response = sql_result;
                 console.log("Response from SQL query: ", sql_result);
-    
-                // Process the response
-                if (sql_result && sql_result.length > 0) {
                     return `Query executed successfully.`;
                 } else {
-                    return "No results found for the query.";
+                    if (sql_result.message.includes("ETIMEDOUT")) {
+                        attempt++;
+                        return await executeQuery(newQuery);
+                    } else {
+                        const newQuery = await error_handler(query,dbDetail,sql_result,model);
+                        attempt++;
+                        return await executeQuery(newQuery);
+                        
+                    }
                 }
             } catch (error) {
                 console.error("Error in custom tool function: ", error);
-    
-                // Check if the error is a timeout error or other network-related errors
-                if (error.message.includes("ETIMEDOUT") || error.message.includes("ECONNREFUSED")) {
-                    throw error; // Re-throw the error to handle it in the retry logic
-                } else {
-                    // If another error occurs, return the error message immediately
-                    return `There was an error processing your request: ${error.message}`;
-                }
+
             }
         };
-    
-        while (attempt < maxRetries) {
-            try {
-                const query = input.trim(); // Ensure input is the SQL query
-                return await executeQuery(query);
-            } catch (error) {
-                attempt++;
-                console.log(`Retrying query... Attempt ${attempt} of ${maxRetries}`);
-    
-                // If maximum retries reached, return a timeout error message
-                if (attempt >= maxRetries) {
-                    return "There was an error processing your request due to a timeout. Please try again later.";
-                }
-            }
-        }
+    const query = input.trim(); // Ensure input is the SQL query
+    return await executeQuery(query);     
     }
 }
 
@@ -163,6 +149,16 @@ async function extractQuery(session_doc,input, model) {
     console.log("generate json data ",jsonData)
     return JSON.parse(jsonData); // Return the query directly as a string
 
+}
+
+async function error_handler(query,dbDetail,error,model) {
+    try {
+    const prompt = await errorResolution_prompt(query,dbDetail,error)
+    const response = await model.invoke(prompt);
+    return response.content
+    } catch (err) {
+        console.error(err)
+    }
 }
 
 async function chatHistory(chat_history) {
