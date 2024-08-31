@@ -7,7 +7,7 @@ import { authUser } from '../middleware/auth.js';
 import { dbConfigStr } from '../models/dbConfigStr.js'
 import { askQuestion } from '../agents/agent.js'
 import { main } from '../report/dbDataToSheet.js'
-import { createDb } from '../controller/createdb.js'
+import { createDb,testConnection } from '../controller/createdb.js'
 import {saveDataFromExcleToDb} from '../controller/excleToDb.js'
 import multer from 'multer';
 import bcrypt from 'bcryptjs';
@@ -42,40 +42,14 @@ router.post('/newMessage',authUser ,async (req, res) => {
     const chat_history = await ChatLog.find({ sessionId })
     console.log("request message : ", message)
 
-
-    let llm_model,dbDetail;
-    console.log(process.env.SERVER_ENV)
-    if (process.env.SERVER_ENV == 'dev1') {
-      const data = await DatabaseCredentials.findOne({ userId: userId,database:database}).lean();
-      dbDetail = {
-        config: {
-          host: process.env.SERVER,
-          user: process.env.USER_NAME,
-          password: process.env.PASSWORD,
-          database: process.env.DB_NAME
-        },
-        dbtype: process.env.DB_TYPE,
-        userId: userId,
-        schema: data.schema
-      }
-      llm_model = {
-        config: {
-          model: process.env.OPENAI_MODEL,
-          temperature: parseFloat(process.env.OPENAI_TEMPERATURE),
-          apiKey: process.env.OPENAI_API_KEY
-        },
-        usedLLM: process.env.LLM
-      }
-    } else {
-      // will handle this later 
-      dbDetail = await DatabaseCredentials.findOne({ userId: userId, database:database}).lean();
+      const dbDetail = await DatabaseCredentials.findOne({ userId: userId, database:database}).lean();
       dbDetail.config = {
           host: dbDetail.host,
           user: dbDetail.username,
           password: dbDetail.password,
           database: dbDetail.database
         }
-      llm_model = {
+      const llm_model = {
         config: {
           model: process.env.OPENAI_MODEL,
           temperature: parseFloat(process.env.OPENAI_TEMPERATURE),
@@ -83,7 +57,6 @@ router.post('/newMessage',authUser ,async (req, res) => {
         },
         usedLLM: process.env.LLM
       }
-    }
 
     session_doc.input = message;
     session_doc.chat_history = chat_history;
@@ -111,7 +84,7 @@ router.post('/newMessage',authUser ,async (req, res) => {
     });
 
     if(response.error){
-      res.status(400).send({
+      return res.status(400).send({
         message: 'some error occured',
         sessionId: session_doc._id,
         chatLogId: chatLogId._id,
@@ -253,6 +226,37 @@ router.post('/database', authUser, async (req, res) => {
   }
 })
 
+
+router.get('/testConnection', authUser, async (req, res) => {
+  try {
+    const {  host, server, database, username, password,dbtype } = req.body;
+    const dbDetail = {
+      dbtype:dbtype
+    }
+    dbDetail.config = {
+      user: username,
+      password: "Agino-tech1",
+      database: database
+    }
+    if (host) {
+      dbDetail.config.host = host
+    } else {
+      dbDetail.config.server = server
+    }
+
+    const result = await testConnection(dbDetail);
+    if(result.connection){
+      res.status(200).send({ status: true, message: "Database connected succesfully",table:result.table});
+    }else{
+      res.status(400).send({ status: false, message: result.message});
+    }
+
+   
+  } catch (error) {
+    console.error(error)
+  }
+})
+
 router.get('/chatHistory', authUser, async (req, res) => {
   const user = req.token
 
@@ -294,15 +298,16 @@ router.get('/chatHistory', authUser, async (req, res) => {
 
 router.get('/chatlogBySessionId', authUser, async (req, res) => {
   try {
-    const { sessionId } = req.query.sessionId
+    const { sessionId } = req.query
 
-    const chatHistory = await ChatLog.find({ sessionId }).select('message ')
+    const chatHistory = await ChatLog.find({ sessionId }).select({ message: 1, context: 1 });
     return res.status(200).json({ status: true, data: chatHistory })
   } catch (error) {
     console.error(error)
   }
-
 })
+
+
 
 router.post('/shopifyDetails', authUser, async (req, res) => {
 
@@ -330,7 +335,7 @@ router.post('/shopifyDetails', authUser, async (req, res) => {
   }
 });
 
-router.get('/getSheet', async (req, res) => {
+router.get('/getSheet',authUser, async (req, res) => {
   try {
     const { chatLogId } = req.query;
     const data = await ChatLog.findOne({ _id: chatLogId });
@@ -341,12 +346,13 @@ router.get('/getSheet', async (req, res) => {
   }
 });
 
-router.post('/uploadSheet', upload.single('file'), async (req, res) =>{
+router.post('/uploadSheet',authUser, upload.single('file'), async (req, res) =>{
   try {
      if (!req.file) {
             throw new Error('No file uploaded. Please upload an Excel file.');
         }
-        const { userId } = req.token?req.token:{userId:"66c4e3f4e2e69b38ea2581f9"}
+        const userId = req.token
+        // ?req.token:{userId:"66cf4e05554955c52c266abd"}
 
         const fileExtension = path.extname(req.file.originalname);
         if (fileExtension !== '.xlsx' && fileExtension !== '.xls') {
@@ -354,20 +360,19 @@ router.post('/uploadSheet', upload.single('file'), async (req, res) =>{
         }
 
 
-        let dbData = await DatabaseCredentials.findOne({ userId:userId, database:userId});
+        let dbData = await DatabaseCredentials.findOne({ userId:userId, database:userId}).lean();
 
         if(!dbData){
-          dbData = await DatabaseCredentials.findOne({ _id:new ObjectId(process.env.DB_ID)});
+          dbData = await DatabaseCredentials.findOne({ _id:new ObjectId(process.env.DB_ID)}).lean();
           const config = {
-            userId: userId, dbtype: dbData.dbtype, database: userId, username: dbData.username, password: dbData.password,host:dbData.host
-          }
+            userId: userId, dbtype: dbData.dbtype, database: userId, username: dbData.username, password: dbData.password,host:dbData.host, aliasName:"sheet"}
           const dbCreation = await createDb(config)
           if(dbCreation){
             const document = new DatabaseCredentials(config);
             await document.save();
           }
 
-          dbData = await DatabaseCredentials.findOne({userId: userId,database: userId});
+          dbData = await DatabaseCredentials.findOne({userId: userId,database: userId}).lean();
           if(!dbData){
             console.log("some error occured")
           }
@@ -384,8 +389,7 @@ router.post('/uploadSheet', upload.single('file'), async (req, res) =>{
           }
         
           const result = await saveDataFromExcleToDb(req, res, dbDetail)
-          dbData.schema = result
-          dbData.save()
+          await DatabaseCredentials.updateOne({ userId: userId ,database: userId}, { $set: { schema: result } }).lean();
           res.status(200).send({ status: true, message: "sheet uploaded successfully"});
   } catch (err) {
     console.log(err)

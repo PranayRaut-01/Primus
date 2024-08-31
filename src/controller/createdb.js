@@ -1,5 +1,5 @@
 import mysql from 'mysql2/promise';
-
+import { fetchSchemaFromDb } from "../clientDB/fetchDbInfo.js";
 
 async function createDb(config) {
     try {
@@ -36,7 +36,26 @@ async function createDb(config) {
         return false
     }
 }
+async function testConnection(dbDetail) {
+    try {
+
+        const table = await fetchSchemaFromDb(dbDetail);
+
+        if(Array.isArray(table) && table.length > 0){
+            return {message :"database connected succesfully", connection : true, table:table};
+        }else{
+            return {connection : false, message:table}
+
+        }
+        
+    } catch (error) {
+        // If an error occurs, log the error message and return false
+        console.error('Connection Error:', error.message);
+        return {connection : false, message:error.message}
+    }
+}
 
 export {
-    createDb
+    createDb,
+    testConnection
 }

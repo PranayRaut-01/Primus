@@ -10,7 +10,7 @@ async function initializeMsSqlConnection(config) {
     return mssqlConnection;
   } catch (err) {
     console.error('Error initialize to MSSQL:', err);
-    return err
+    return {status:false,error:err.message}
   }
 }
 
@@ -21,7 +21,7 @@ async function initializePgSqlConnection(config) {
     return pgsqlConnection;
   } catch (err) {
     console.error('Error initialize to PostgreSQL:', err);
-    return err
+    return {status:false,error:err.message}
   }
 }
 
@@ -32,7 +32,7 @@ async function initializeMySQLConnection(config) {
     return mysqlConnection;
   } catch (err) {
     console.error('Error initializing MySQL connection:', err);
-    return err
+    return {status:false,error:err.message}
   }
 }
 
@@ -40,6 +40,9 @@ async function initializeMySQLConnection(config) {
 async function executeMssqlQuery(dbDetail,query) {
     try {
       const pool = await initializeMsSqlConnection(dbDetail.config);
+      if(!pool.status){
+        return pool.error
+      }
       const result = await pool.request().query(query);
       return result.recordset;
     } catch (err) {
@@ -51,6 +54,9 @@ async function executeMssqlQuery(dbDetail,query) {
 async function executePgSqlQuery(dbDetail,query) {
   try {
     const pool = await initializePgSqlConnection(dbDetail.config);
+    if(!pool.status){
+      return pool.error
+    }
     const result = await pool.query(query);
     return result.rows;
   } catch (err) {
@@ -63,6 +69,9 @@ async function executePgSqlQuery(dbDetail,query) {
 async function executeMySQLQuery(dbDetail, query) {
   try {
     const connection = await initializeMySQLConnection(dbDetail.config);
+    if(!connection.status){
+      return connection.error
+    };
     const [rows] = await connection.execute(query, [dbDetail.config.database]);
     return rows;
   } catch (err) {

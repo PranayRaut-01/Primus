@@ -59,6 +59,12 @@ async function saveDataFromExcleToDb(req, res, dbDetail) {
             await connection.query(`DROP TABLE IF EXISTS \`${tableName}\`;`);
         }
 
+        // Log the number of columns vs. number of values
+        console.log('Columns:', filteredHeaders);
+        console.log('Number of columns:', filteredHeaders.length);
+        console.log('Number of values for each row:', filteredRows.map(row => row.length));
+
+
         // Create the table
         await connection.query(createTableQuery);
 
@@ -68,7 +74,7 @@ async function saveDataFromExcleToDb(req, res, dbDetail) {
             VALUES ?;
         `;
 
-        const values = rows.map(row => row.map(value => value !== undefined ? value : null));
+        const values = filteredRows.map(row => row.map(value => value !== undefined ? value : null));
 
         console.log(values)
 
@@ -93,27 +99,26 @@ async function saveDataFromExcleToDb(req, res, dbDetail) {
         return dbTable;
     } catch (err) {
         console.error(err)
+        return {message : err}
     }
 }
 
 async function sanitizeColumnName(name, maxLength = 64) {
     try {
         if (!name) return ''; // Handle null or undefined names
-        // Remove leading and trailing whitespace
         let sanitized = name.trim();
-        // Replace any invalid characters (like spaces) with underscores
         sanitized = sanitized.replace(/[^a-zA-Z0-9_]/g, '_');
-        // Truncate if necessary
         if (sanitized.length > maxLength) {
             console.warn(`Column name '${name}' is too long and will be truncated.`);
             sanitized = sanitized.substring(0, maxLength);
         }
-        sanitized = sanitized.trim()
+        sanitized = sanitized.trim();
         return sanitized;
     } catch (err) {
-        console.log(err)
+        console.error("Error sanitizing column name:", err);
+        return ''; 
     }
-};
+}
 
 
 async function getColumnType(sampleData) {
