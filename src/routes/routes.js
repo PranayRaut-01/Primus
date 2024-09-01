@@ -239,7 +239,7 @@ router.get('/testConnection', authUser, async (req, res) => {
     }
     dbDetail.config = {
       user: username,
-      password: "Agino-tech1",
+      password: password,
       database: database
     }
     if (host) {
