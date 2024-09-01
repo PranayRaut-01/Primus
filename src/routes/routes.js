@@ -197,7 +197,7 @@ router.get('/database', authUser, async (req, res) => {
 
 router.get('/connecteddatabases', authUser, async (req, res) => {
   try {
-      const userId = req.token;
+    const userId  = new ObjectId(req.token)
       const data = await DatabaseCredentials.find({ userId }).$project('_id database aliasName').lean();
       res.status(200).json({ status: true, data });
   } catch (error) {
@@ -208,7 +208,7 @@ router.get('/connecteddatabases', authUser, async (req, res) => {
 
 router.post('/database', authUser, async (req, res) => {
   try {
-    const { userId } = req.token
+    const userId  = new ObjectId(req.token)
     const { dbtype, host, server, database, username, password } = req.body;
 
     const data = {
@@ -233,19 +233,19 @@ router.post('/database', authUser, async (req, res) => {
 
 router.get('/testConnection', authUser, async (req, res) => {
   try {
-    const {  host, server, database, username, password,dbtype } = req.body;
+    const {  host, server, database, username, password,dbtype } = req.query;
     const dbDetail = {
-      dbtype:dbtype
+      dbtype:dbtype.trim()
     }
     dbDetail.config = {
-      user: username,
-      password: password,
-      database: database
+      user: username.trim(),
+      password: password.trim(),
+      database: database.trim()
     }
     if (host) {
-      dbDetail.config.host = host
+      dbDetail.config.host = host.trim()
     } else {
-      dbDetail.config.server = server
+      dbDetail.config.server = server.trim()
     }
 
     const result = await testConnection(dbDetail);
@@ -262,40 +262,9 @@ router.get('/testConnection', authUser, async (req, res) => {
 })
 
 router.get('/chatHistory', authUser, async (req, res) => {
-  const user = req.token
-
-  const sessions = Session.aggregate([
-    { $match: { userId: mongoose.Types.ObjectId(user) } },
-    {
-      $lookup: {
-        from: 'chatLogs',
-        localField: '_id',
-        foreignField: 'sessionId',
-        as: 'messages',
-      },
-    },
-    {
-      $addFields: {
-        lastUserMessage: {
-          $last: {
-            $filter: {
-              input: '$messages',
-              as: 'message',
-              cond: { $eq: ['$$message.sender', 'user'] },
-            },
-          },
-        },
-      },
-    },
-    {
-      $project: {
-        startTime: 1,
-        endTime: 1,
-        'lastUserMessage.content': 1,
-        'lastUserMessage.timestamp': 1,
-      },
-    },
-  ]);
+  const userId  = new ObjectId(req.token)
+  
+  const sessions = await Session.find({userId:userId}).select({_id:1, psid:1,startTime:1}).lean()
 
   res.status(200).json({ status: true, data: sessions })
 })
@@ -355,7 +324,7 @@ router.post('/uploadSheet',authUser, upload.single('file'), async (req, res) =>{
      if (!req.file) {
             throw new Error('No file uploaded. Please upload an Excel file.');
         }
-        const userId = req.token
+        const userId  = new ObjectId(req.token)
         // ?req.token:{userId:"66cf4e05554955c52c266abd"}
 
         const fileExtension = path.extname(req.file.originalname);
