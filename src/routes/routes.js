@@ -271,9 +271,9 @@ router.get('/chatHistory', authUser, async (req, res) => {
 
 router.get('/chatlogBySessionId', authUser, async (req, res) => {
   try {
-    const { sessionId } = req.query
+    const sessionId  = new ObjectId(req.query.sessionId)
 
-    const chatHistory = await ChatLog.find({ sessionId }).select({ message: 1, context: 1 });
+    const chatHistory = await ChatLog.find({ sessionId }).select({ message: 1, context: 1 }).lean();
     return res.status(200).json({ status: true, data: chatHistory })
   } catch (error) {
     console.error(error)
