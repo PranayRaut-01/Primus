@@ -7,7 +7,7 @@ import mysql from 'mysql2/promise';
 async function initializeMsSqlConnection(config) {
   try {
     const mssqlConnection = sql.connect(config);
-    return mssqlConnection;
+    return {status:true,pool:mssqlConnection}
   } catch (err) {
     console.error('Error initialize to MSSQL:', err);
     return {status:false,error:err.message}
@@ -18,7 +18,7 @@ async function initializePgSqlConnection(config) {
   try {
     const pgsqlConnection = new Pool(config);
     await pgsqlConnection.connect();
-    return pgsqlConnection;
+    return {status:true,pool:pgsqlConnection}
   } catch (err) {
     console.error('Error initialize to PostgreSQL:', err);
     return {status:false,error:err.message}
@@ -29,7 +29,7 @@ async function initializeMySQLConnection(config) {
   try {
     const mysqlConnection = await mysql.createConnection(config);
     console.log('MySQL connection initialized successfully');
-    return mysqlConnection;
+    return {status:true,connection:mysqlConnection}
   } catch (err) {
     console.error('Error initializing MySQL connection:', err);
     return {status:false,error:err.message}
@@ -43,7 +43,7 @@ async function executeMssqlQuery(dbDetail,query) {
       if(!pool.status){
         return pool.error
       }
-      const result = await pool.request().query(query);
+      const result = await pool.pool.request().query(query);
       return result.recordset;
     } catch (err) {
       console.error('Error executing MSSQL query:', err);
@@ -57,7 +57,7 @@ async function executePgSqlQuery(dbDetail,query) {
     if(!pool.status){
       return pool.error
     }
-    const result = await pool.query(query);
+    const result = await pool.pool.query(query);
     return result.rows;
   } catch (err) {
     console.error('Error executing PostgreSQL query:', err);
@@ -72,11 +72,11 @@ async function executeMySQLQuery(dbDetail, query) {
     if(!connection.status){
       return connection.error
     };
-    const [rows] = await connection.execute(query, [dbDetail.config.database]);
+    const [rows] = await connection.connection.execute(query, [dbDetail.config.database]);
     return rows;
   } catch (err) {
     console.error('Error executing MySQL query:', err);
-    return err
+    return err;
   }
 }
 

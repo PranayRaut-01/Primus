@@ -35,7 +35,7 @@ router.post('/newMessage',authUser ,async (req, res) => {
     const userId  = new ObjectId(req.token)
     let session_doc
     if (!sessionId) {
-      session_doc = await Session.create({ userId: userId, psid, isActive: true }).lean();
+      session_doc = await Session.create({ userId: userId, psid, isActive: true })
     } else {
       session_doc = await Session.findOne({ _id: sessionId });
     }
@@ -44,10 +44,14 @@ router.post('/newMessage',authUser ,async (req, res) => {
 
       const dbDetail = await DatabaseCredentials.findOne({ userId: userId, database:database}).lean();
       dbDetail.config = {
-          host: dbDetail.host,
           user: dbDetail.username,
           password: dbDetail.password,
           database: dbDetail.database
+        }
+        if (dbDetail.host) {
+          dbDetail.config.host = dbDetail.host
+        } else {
+          dbDetail.config.server = dbDetail.server
         }
       const llm_model = {
         config: {
@@ -109,7 +113,7 @@ router.post('/newMessage',authUser ,async (req, res) => {
     });
   } catch (error) {
     console.error('Error processing message:', error);
-    res.status(500).send({ error: 'Server error' });
+    res.status(500).send({ error: 'Server error', message : error });
   }
 });
 
