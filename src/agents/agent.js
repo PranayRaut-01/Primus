@@ -8,6 +8,7 @@ import { queryExecuter } from "../clientDB/connectClientDb.js"
 import { fetchSchemaFromDb } from "../clientDB/fetchDbInfo.js"
 import {DatabaseCredentials} from "../models/dbCreds.js"
 import { errorResolution_prompt } from "../agents/prompt.js";
+import { retrieveRelevantSchema } from "../clientDB/pinecone.js"
 import { generateAgentPrompt,generateJsonPrompt,queryExecuter_prompt } from './prompt.js'
 
 async function callAgent(input, chat_history=[], schema, dbDetail, llm,session_doc) {
@@ -70,10 +71,10 @@ async function callAgent(input, chat_history=[], schema, dbDetail, llm,session_d
         if(query_check){
             const data = await extractQuery(session_doc,response.output,model)
             await getData(data.sql_query,session_doc,dbDetail,model)
-            session_doc.agent_history = `${data.response}, Query generated: ${session_doc.SQL_query?session_doc.SQL_query:""}`
+            session_doc.agent_history = `${data.response},${session_doc.SQL_query?session_doc.SQL_query:""}`
             session_doc.agent = data.response
         }else{
-            session_doc.agent_history = `${response.output}, Query generated: ${session_doc.SQL_query?session_doc.SQL_query:""}`
+            session_doc.agent_history = `${response.output},${session_doc.SQL_query?session_doc.SQL_query:""}`
             session_doc.agent = response.output
         }
 
@@ -183,24 +184,16 @@ async function chatHistory(chat_history) {
 async function askQuestion(session_doc) {
     try {
         let {input, chat_history, dbDetail, llm_model} = session_doc
-        if(!dbDetail.schema ){
+        if(dbDetail.isPincone && dbDetail.indexName){
             try {
-                dbDetail.schema = await fetchSchemaFromDb(dbDetail);
-        
-                // Update the user's database credentials with the new schema
-                const data = await DatabaseCredentials.updateOne(
-                    { userId: session_doc.userId,database:dbDetail.config.database },
-                    { $set: { schema: dbDetail.schema } }
-                );
-                console.log(data)
+                dbDetail.schema = await retrieveRelevantSchema(input, dbDetail.indexName);
             } catch (error) {
                 console.error("Error fetching schema or updating the database:", error);
-                // Handle error appropriately, maybe return or throw
             }
         }
         chat_history = await chatHistory(chat_history) 
         session_doc = await callAgent(input, chat_history, JSON.stringify(dbDetail.schema), dbDetail, llm_model,session_doc)
-        console.log(session_doc)
+        // console.log(session_doc)
        
         session_doc.chat_history = {
             human:input,

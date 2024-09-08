@@ -38,22 +38,36 @@ async function createDb(config) {
 }
 async function testConnection(dbDetail) {
     try {
+        // Log to confirm that the function is reached
+        console.log('Fetching schema from the database...');
 
+        // Await for the fetchSchemaFromDb to resolve or reject
         const table = await fetchSchemaFromDb(dbDetail);
-
-        if(Array.isArray(table) && table.length > 0){
-            return {message :"database connected succesfully", connection : true, table:table};
-        }else{
-            return {connection : false, message:table}
-
-        }
         
+        // Check if the returned result is an array with elements
+        if (Array.isArray(table) && table.length > 0) {
+            return {
+                message: "Database connected successfully",
+                connection: true,
+                table: table
+            };
+        } else {
+            return {
+                connection: false,
+                message: "No tables found or connection failed",
+                table: table
+            };
+        }
     } catch (error) {
-        // If an error occurs, log the error message and return false
+        // Log and return the error in case of failure
         console.error('Connection Error:', error.message);
-        return {connection : false, message:error.message}
+        return {
+            connection: false,
+            message: error.message
+        };
     }
 }
+
 
 export {
     createDb,

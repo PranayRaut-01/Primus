@@ -38,10 +38,32 @@ async function fetchPGSQLTableSchemas(dbDetail) {
 async function fetchMySQLTableSchemas(dbDetail) {
   try {
     const query = `
-      SELECT table_name, column_name, data_type
-      FROM information_schema.columns
-      WHERE table_schema = ?
-      ORDER BY table_name, ordinal_position
+      SELECT 
+    TABLES.TABLE_NAME AS 'Table Name',
+    COLUMNS.COLUMN_NAME AS 'Column Name',
+    COLUMNS.COLUMN_TYPE AS 'Column Type',
+    COLUMNS.IS_NULLABLE AS 'Is Nullable',
+    COLUMNS.COLUMN_KEY AS 'Column Key',
+    COLUMNS.COLUMN_DEFAULT AS 'Default Value',
+    COLUMNS.EXTRA AS 'Extra Info',
+    IFNULL(CONSTRAINTS.REFERENCED_TABLE_NAME, 'NULL') AS 'Referenced Table',
+    IFNULL(CONSTRAINTS.REFERENCED_COLUMN_NAME, 'NULL') AS 'Referenced Column',
+    IFNULL(CONSTRAINTS.CONSTRAINT_NAME, 'NULL') AS 'Constraint Name'
+FROM 
+    INFORMATION_SCHEMA.COLUMNS AS COLUMNS
+LEFT JOIN 
+    INFORMATION_SCHEMA.KEY_COLUMN_USAGE AS CONSTRAINTS 
+    ON COLUMNS.TABLE_SCHEMA = CONSTRAINTS.TABLE_SCHEMA
+    AND COLUMNS.TABLE_NAME = CONSTRAINTS.TABLE_NAME
+    AND COLUMNS.COLUMN_NAME = CONSTRAINTS.COLUMN_NAME
+LEFT JOIN 
+    INFORMATION_SCHEMA.TABLES AS TABLES
+    ON COLUMNS.TABLE_NAME = TABLES.TABLE_NAME
+WHERE 
+    TABLES.TABLE_SCHEMA = ?
+ORDER BY 
+    TABLES.TABLE_NAME, COLUMNS.ORDINAL_POSITION;
+
     `;
     
     const result = await queryExecuter(dbDetail, query);
@@ -64,6 +86,8 @@ async function fetchSchemaFromDb(dbDetail) {
       }else if(dbDetail.dbtype == 'mysql'){
         const data = await fetchMySQLTableSchemas(dbDetail)
         return data
+      }else{
+
       }
   } catch (err) {
     console.log(err)

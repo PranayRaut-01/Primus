@@ -39,6 +39,13 @@ const databaseCredentialsSchema = new Schema({
     type: String,
     required: true
   },
+  isPincone:{
+    type: Boolean,
+    default: false
+  },
+  indexName:{
+    type: String
+  }
 },{ timestamps: true });
 
 const DatabaseCredentials = mongoose.model('DatabaseCredentials', databaseCredentialsSchema);

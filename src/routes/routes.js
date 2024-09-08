@@ -9,6 +9,7 @@ import { askQuestion } from '../agents/agent.js'
 import { main } from '../report/dbDataToSheet.js'
 import { createDb,testConnection } from '../controller/createdb.js'
 import {saveDataFromExcleToDb} from '../controller/excleToDb.js'
+import {embedAndStoreSchema} from '../clientDB/pinecone.js'
 import multer from 'multer';
 import bcrypt from 'bcryptjs';
 import path from 'path';
@@ -29,9 +30,13 @@ const upload = multer({
 const router = Router();
 
 router.post('/newMessage',authUser ,async (req, res) => {
-  const {  message, sessionId, database, psid } = req.body;
-
   try {
+    const {  message, sessionId, database, psid } = req.body;
+
+    if (!message || !database || !psid) {
+      return res.status(400).send({ status: true, message: "Mandatory parameter missing" });
+    }
+
     const userId  = new ObjectId(req.token)
     let session_doc
     if (!sessionId) {
@@ -121,7 +126,7 @@ router.post('/signup', async (req, res) => {
   const { username, email, password } = req.body;
 
   if (!username || !email || !password) {
-    return res.status(400).json({ status: false, message: 'All fields are required' });
+     return res.status(400).send({ status: true, message: "Mandatory parameter missing" });
   }
 
   try {
@@ -153,6 +158,10 @@ router.post('/signup', async (req, res) => {
 router.post('/login', async (req, res) => {
   try {
     const { username, password } = req.body;
+
+    if (!username || !password) {
+      return res.status(400).send({ status: true, message: "Mandatory parameter missing" });
+    }
 
     // Find user in the database
     const user = await User.findOne({ email: username });
@@ -198,8 +207,8 @@ router.get('/database', authUser, async (req, res) => {
 router.get('/connecteddatabases', authUser, async (req, res) => {
   try {
     const userId  = new ObjectId(req.token)
-      const data = await DatabaseCredentials.find({ userId }).$project('_id database aliasName').lean();
-      res.status(200).json({ status: true, data });
+    const data = await DatabaseCredentials.find({ userId }).$project('_id database aliasName').lean();
+    res.status(200).json({ status: true, data });
   } catch (error) {
       console.error('Error fetching connected databases:', error);
       res.status(500).json({ status: false, message: 'Internal Server Error' });
@@ -209,10 +218,14 @@ router.get('/connecteddatabases', authUser, async (req, res) => {
 router.post('/database', authUser, async (req, res) => {
   try {
     const userId  = new ObjectId(req.token)
-    const { dbtype, host, server, database, username, password } = req.body;
+    const { dbtype, host, server, database, username, password, schema } = req.body;
+
+    if (!dbtype || !host || !server || !database || !username || !password || !schema) {
+      return res.status(400).send({ status: true, message: "Mandatory parameter missing"});
+    }
 
     const data = {
-      userId: userId, dbtype: dbtype, database: database, username: username, password: password
+      userId: userId, dbtype: dbtype, database: database, username: username, password: password, schema:schema
     }
     if (host) {
       data.host = host
@@ -220,22 +233,33 @@ router.post('/database', authUser, async (req, res) => {
       data.server = server
     }
 
+    const pinconeData = await embedAndStoreSchema(data,data.schema)
+    if(!pinconeData.status){
+      return res.status(500).send({ status: true, message: "getting some error while saving database data", data: pinconeData.message });
+    }
+    data.pincone = true;
+    data.indexName = pinconeData.indexName
     const document = new DatabaseCredentials(data);
-    await document.save();
+    const dbDetail = await document.save();
 
-    res.status(200).send({ status: true, message: "sheet generated successfully", document: document });
+    res.status(200).send({ status: true, message: "Database saved succesfully", document: dbDetail });
 
   } catch (error) {
     console.error(error)
+    res.status(500).send({ status: false, message: "Some error occured", data: error.message });
   }
 })
 
 
-router.get('/testConnection', authUser, async (req, res) => {
+router.post('/testConnection', authUser, async (req, res) => {
   try {
-    const {  host, server, database, username, password,dbtype } = req.query;
+    const {  host, server, database, username, password,dbtype } = req.body;
+
+    if (!host || !server || !database || !username || !password || !dbtype) {
+      return res.status(400).send({ status: true, message: "Mandatory parameter missing"});
+    }
     const dbDetail = {
-      dbtype:dbtype.trim()
+      dbtype:dbtype.trim(),
     }
     dbDetail.config = {
       user: username.trim(),
@@ -333,10 +357,10 @@ router.post('/uploadSheet',authUser, upload.single('file'), async (req, res) =>{
         }
 
 
-        let dbData = await DatabaseCredentials.findOne({ userId:userId, database:userId}).lean();
+        let dbData = await DatabaseCredentials.findOne({ userId:userId, database:userId})
 
         if(!dbData){
-          dbData = await DatabaseCredentials.findOne({ _id:new ObjectId(process.env.DB_ID)}).lean();
+          dbData = await DatabaseCredentials.findOne({ _id:new ObjectId(process.env.DB_ID)})
           const config = {
             userId: userId, dbtype: dbData.dbtype, database: userId, username: dbData.username, password: dbData.password,host:dbData.host, aliasName:"sheet"}
           const dbCreation = await createDb(config)
@@ -345,7 +369,7 @@ router.post('/uploadSheet',authUser, upload.single('file'), async (req, res) =>{
             await document.save();
           }
 
-          dbData = await DatabaseCredentials.findOne({userId: userId,database: userId}).lean();
+          dbData = await DatabaseCredentials.findOne({userId: userId,database: userId})
           if(!dbData){
             console.log("some error occured")
           }
@@ -362,8 +386,51 @@ router.post('/uploadSheet',authUser, upload.single('file'), async (req, res) =>{
           }
         
           const result = await saveDataFromExcleToDb(req, res, dbDetail)
-          await DatabaseCredentials.updateOne({ userId: userId ,database: userId}, { $set: { schema: result } }).lean();
+          await DatabaseCredentials.updateOne({ userId: userId ,database: userId}, { $set: { schema: result } })
           res.status(200).send({ status: true, message: "sheet uploaded successfully"});
+  } catch (err) {
+    console.log(err)
+    res.status(500).send({ status: false, message: err.message });
+  }
+});
+
+router.post('/filter-data', async(req, res) => {
+  try {
+    const { xaxis, yaxis1, yaxis2 } = req.body; 
+
+    if (!xaxis || !yaxis1 || !yaxis2) {
+      return res.status(400).send({ status: true, message: "Mandatory parameter missing" });
+    }
+
+    const chatLogId = new ObjectId('66d484b2f6b1b49da77e6aaf')
+    
+  const data = (await ChatLog.findOne({ _id: chatLogId }).lean()).context.DB_response;
+
+  const structuredData = {
+    labels: data.map(row => row[xaxis]) ,
+    datasets:[{
+      label: yaxis1,
+      data: data.map(row => row[yaxis1]),
+      fill: false,  // For line charts to disable filling under the line
+      yAxisID: "y-axis-1"  // If you have multiple y-axes
+    },
+    {
+      label: yaxis2,
+      data:  yaxis2 ? data.map(row => row[yaxis2]) : [],
+      fill: false,
+      yAxisID: "y-axis-2"
+    }
+  ]
+  };
+
+  // Clean undefined keys if xaxis2 is not provided
+  Object.keys(structuredData).forEach(key => {
+      if (!structuredData[key]) {
+          delete structuredData[key];
+      }
+  });
+
+  res.status(200).send({ status: true, message: "sheet uploaded successfully", data: structuredData});
   } catch (err) {
     console.log(err)
     res.status(500).send({ status: false, message: err.message });
