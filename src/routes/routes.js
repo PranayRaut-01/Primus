@@ -30,6 +30,10 @@ const upload = multer({
 });
 const router = Router();
 
+router.get('/',async (req,res) =>{
+  res.status(200).send("<h1>welcome Agino tech</h1>")
+})
+
 router.post('/signup', async (req, res) => {
   const { username, email, password } = req.body;
 
