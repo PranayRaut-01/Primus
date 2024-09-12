@@ -200,8 +200,8 @@ router.post('/testConnection', authUser, async (req, res) => {
   try {
     const {  host, server, database, username, password,dbtype } = req.body;
 
-    if ((!host || !server) || !database || !username || !password || !dbtype) {
-      return res.status(400).send({ status: true, message: "Mandatory parameter missing"});
+    if ( !database || !username || !password || !dbtype) {
+      return res.status(400).send({ status: false, message: "Mandatory parameter missing"});
     }
     const dbDetail = {
       dbtype:dbtype.trim(),
