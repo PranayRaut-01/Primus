@@ -31,7 +31,7 @@ const upload = multer({
 const router = Router();
 
 router.get('/',async (req,res) =>{
-  res.status(200).send("<h1>welcome Agino tech</h1>")
+  res.status(200).send("<h1>Welcome to Agino tech</h1>")
 })
 
 router.post('/signup', async (req, res) => {
