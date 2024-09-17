@@ -194,7 +194,6 @@ async function askQuestion(session_doc) {
         chat_history = await chatHistory(chat_history) 
         session_doc = await callAgent(input, chat_history, JSON.stringify(dbDetail.schema), dbDetail, llm_model,session_doc)
         // console.log(session_doc)
-       
         session_doc.chat_history = {
             human:input,
             agent:session_doc?.agent_history??""

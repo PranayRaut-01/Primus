@@ -346,7 +346,7 @@ router.get('/chatHistory', authUser, async (req, res) => {
   try {
     const userId  = new ObjectId(req.token)
   
-    const sessions = await Session.find({userId:userId}).select({_id:1, psid:1,startTime:1}).lean()
+    const sessions = await Session.find({userId:userId}).select({_id:1, psid:1,startTime:1,input:1}).lean()
   
   res.status(200).json({ status: true, data: sessions })
   } catch (error) {
@@ -453,7 +453,7 @@ router.post('/api/notes',authUser, async (req, res) => {
     const { title, content, discription } = req.body;
     const userId  = new ObjectId(req.token)
 
-    if (!title || !content || userId ) {
+    if (!title || !content ) {
       return res.status(400).send({ status: false, message: "Mandatory parameter missing" });
     }
 

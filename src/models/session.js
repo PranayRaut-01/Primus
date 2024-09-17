@@ -35,6 +35,9 @@ const sessionSchema = new Schema({
   },
   llm_model:{
     type:Object
+  },
+  input:{
+    type:String,
   }
 
 },{ timestamps: true });
