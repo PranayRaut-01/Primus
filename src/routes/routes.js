@@ -141,6 +141,12 @@ router.post('/newMessage',authUser ,async (req, res) => {
     // Save the updated session document
     if (!sessionId) {
       await session_doc.save();
+    }else{
+      await Session.findOneAndUpdate(
+        { _id: sessionId },   // Find by session ID
+        { $set: { input: message } },  // Update the input field
+        { new: true }  // Return the updated document
+      );
     }
     const response = await askQuestion(session_doc)
 
