@@ -288,7 +288,7 @@ router.get('/database', authUser, async (req, res) => {
 router.get('/connecteddatabases', authUser, async (req, res) => {
   try {
     const userId  = new ObjectId(req.token)
-    const data = await DatabaseCredentials.find({ userId }).$project('_id database aliasName').lean();
+    const data = await DatabaseCredentials.find({ userId }).select('_id database aliasName').lean();
     res.status(200).json({ status: true, data:data });
   } catch (error) {
       console.error('Error fetching connected databases:', error);
