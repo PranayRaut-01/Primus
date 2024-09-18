@@ -243,14 +243,14 @@ router.post('/testConnection', authUser, async (req, res) => {
 router.post('/database', authUser, async (req, res) => {
   try {
     const userId  = new ObjectId(req.token)
-    const { dbtype, host, server, database, username, password, schema } = req.body;
+    const { dbtype, host, server, database, username, password, schema,aliasName } = req.body;
 
-    if (!dbtype || (!host || !server)|| !database || !username || !password || !schema) {
+    if (!dbtype || (!host || !server)|| !database || !username || !password || !schema || !aliasName) {
       return res.status(400).send({ status: true, message: "Mandatory parameter missing"});
     }
 
     const data = {
-      userId: userId, dbtype: dbtype, database: database, username: username, password: password, schema:schema
+      userId: userId, dbtype: dbtype, database: database, username: username, password: password, schema:schema, aliasName:aliasName
     }
     if (host) {
       data.host = host
