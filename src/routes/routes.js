@@ -292,7 +292,7 @@ router.get('/connecteddatabases', authUser, async (req, res) => {
     res.status(200).json({ status: true, data:data });
   } catch (error) {
       console.error('Error fetching connected databases:', error);
-      res.status(500).json({ status: false, message: 'Internal Server Error' });
+      res.status(500).json({ status: false, message: 'Internal Server Error', error : error });
   }
 });
 
