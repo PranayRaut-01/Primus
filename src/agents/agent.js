@@ -71,7 +71,7 @@ async function callAgent(input, chat_history=[], schema, dbDetail, llm,session_d
         if(query_check){
             const data = await extractQuery(session_doc,response.output,model)
             await getData(data.sql_query,session_doc,dbDetail,model)
-            session_doc.agent_history = `${data.response},${session_doc.SQL_query?session_doc.SQL_query:""}`
+            session_doc.agent_history =`${data.response},${session_doc.SQL_query?session_doc.SQL_query:""}`
             session_doc.agent = data.response
         }else{
             session_doc.agent_history = `${response.output},${session_doc.SQL_query?session_doc.SQL_query:""}`
@@ -109,7 +109,7 @@ async function getData(input,session_doc,dbDetail,model) {
                 session_doc.SQL_query = query;
                 session_doc.DB_response = sql_result;
                 console.log("Response from SQL query: ", sql_result);
-                    return `Query executed successfully.`;
+                    return `data generated : ${sql_result}`
                 } else {
                     if (sql_result.message.includes("ETIMEDOUT")) {
                         attempt++;
@@ -165,17 +165,23 @@ async function error_handler(query,dbDetail,error,model) {
 async function chatHistory(chat_history) {
     try {
         const new_chatHistory = [];
-        for(let i=0;i<chat_history.length;i++){
-            new_chatHistory.push(new HumanMessage({
-                content:chat_history[i]['message'][0]['human']
-            }))
-            new_chatHistory.push(new AIMessage({
-                content:chat_history[i]['message'][0]['agent']
-            }))
+        const length = chat_history.length;
+
+        if (length > 0) {
+            const startIndex = Math.max(0, length - 4); // Start from the last 4 or less
+            for (let i = length - 1; i >= startIndex; i--) {
+                const lastSession = chat_history[i]['message'][0];
+                new_chatHistory.push(new HumanMessage({
+                    content: lastSession['human']
+                }));
+                new_chatHistory.push(new AIMessage({
+                    content: lastSession['agent']
+                }));
+            }
         }
-        return new_chatHistory
+        return new_chatHistory;
     } catch (error) {
-        
+        console.error('getting error form chathistory formate',error)
     }
 }
 
