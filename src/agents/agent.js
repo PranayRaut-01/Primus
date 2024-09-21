@@ -91,45 +91,99 @@ async function callAgent(input, chat_history=[], schema, dbDetail, llm,session_d
     }
 }
 
-async function getData(input,session_doc,dbDetail,model) {
+async function getData(input, session_doc, dbDetail, model) {
     {
         const maxRetries = 2; 
         let attempt = 0;
+        const chunkSize = 5; // Define chunk size to break large responses
         const executeQuery = async (query) => {
             try {
                 if (attempt > maxRetries) {
                     const message = "There was an error processing your request due to a timeout. Please try again later.";
-                    session_doc.error = message
-                    return ;
+                    session_doc.error = message;
+                    return;
                 }
+                
                 console.log("Input to the tool: ", query);
                 const sql_result = await queryExecuter(dbDetail, query);
 
                 if (sql_result && sql_result.length > 0) {
-                session_doc.SQL_query = query;
-                session_doc.DB_response = sql_result;
-                console.log("Response from SQL query: ", sql_result);
-                    return `data generated : ${sql_result}`
+                    session_doc.SQL_query = query;
+                    session_doc.DB_response = sql_result;
+                    console.log("Response from SQL query: ", sql_result);
+
+                    // Check if the SQL response is large
+                    if (sql_result.length > chunkSize) {
+                        // If the result is large, break it into chunks and summarize
+                        const chunks = chunkData(sql_result, chunkSize);
+                        let insights = [];
+
+                        // Iterate over each chunk and generate insights
+                        for (let i = 0; i < chunks.length; i++) {
+                            const chunk = chunks[i];
+                            console.log(`Processing chunk ${i + 1}/${chunks.length}`);
+
+                            // Generate insights for the chunk using the model
+                            const chunkInsight = await generateInsightsFromChunk(chunk, model);
+                            insights.push(chunkInsight);
+                        }
+
+                        // Combine all insights into a final summary
+                        const finalSummary = insights.join(' ');
+
+                        console.log("Summary of insights: ", finalSummary);
+                        // session_doc.summary = finalSummary;
+                        return `Summary generated: ${finalSummary}`;
+                    } else {
+                        // If the result is small, return the data directly
+                        return `Data generated: ${sql_result}`;
+                    }
                 } else {
                     if (sql_result.message.includes("ETIMEDOUT")) {
                         attempt++;
                         return await executeQuery(newQuery);
                     } else {
-                        const newQuery = await error_handler(query,dbDetail,sql_result,model);
+                        const newQuery = await error_handler(query, dbDetail, sql_result, model);
                         attempt++;
                         return await executeQuery(newQuery);
-                        
                     }
                 }
             } catch (error) {
                 console.error("Error in custom tool function: ", error);
-
             }
         };
-    const query = input.trim(); // Ensure input is the SQL query
-    return await executeQuery(query);     
+
+        const query = input.trim(); // Ensure input is the SQL query
+        return await executeQuery(query);
     }
 }
+
+// Helper function to break data into chunks
+function chunkData(data, chunkSize) {
+    const chunks = [];
+    for (let i = 0; i < data.length; i += chunkSize) {
+        chunks.push(data.slice(i, i + chunkSize));
+    }
+    return chunks;
+}
+
+// Function to generate insights from a chunk using the LLM
+async function generateInsightsFromChunk(chunk, model) {
+    try {
+        // Create a prompt message array for the model
+        const prompt = `Summarize the following data:\n${JSON.stringify(chunk)}`;
+        
+        const response = await model.invoke(prompt);
+        
+        return response.content || "No insights generated";
+    } catch (error) {
+        console.error("Error generating insights: ", error);
+        return "Error generating insights";
+    }
+}
+
+
+
 
 
 
