@@ -74,10 +74,10 @@ async function callAgent(input, chat_history=[], schema, dbDetail, llm,session_d
             const data = await extractQuery(session_doc,response.output,model)
             await getData(data.sql_query,session_doc,dbDetail,model)
             session_doc.agent_history =`${session_doc.summary?session_doc.summary:data.response}`
-            session_doc.agent = data.response
+            session_doc.agent = session_doc.summary?session_doc.summary:data.response
         }else{
             session_doc.agent_history = `${session_doc.summary?session_doc.summary:response.output}`
-            session_doc.agent = response.output
+            session_doc.agent = session_doc.summary?session_doc.summary:response.output
         }
 
         if(session_doc.DB_response && session_doc.SQL_query){
@@ -125,19 +125,15 @@ async function getData(input, session_doc, dbDetail, model) {
                             return generateInsightsFromChunk(chunk, model);
                         });
                         
-                        Promise.all(chunkPromises)
-                          .then(chunkInsights => {
-                            insights.push(...chunkInsights);
-                            console.log('All chunks processed successfully');
-                            // Continue further processing if needed
-                          })
-                          .catch(error => {
-                            console.error('Error processing chunks:', error);
-                            // Handle the error as needed
-                          });
+                        // Wait for all chunk promises to resolve
+                        const chunkInsights = await Promise.all(chunkPromises);
+
+                        // Push the insights from resolved promises into the insights array
+                        insights.push(...chunkInsights);
+                        console.log('All chunks processed successfully');
 
                         // Combine all insights into a final summary
-                        const finalSummary = insights.join(' , ');
+                        const finalSummary = insights.join(' \n ');
                         const finalData = await generateInsightsFromBulk(finalSummary,model)
                         // console.log("Summary of insights: ", finalSummary);
                         session_doc.summary = finalData;
@@ -197,24 +193,23 @@ async function generateInsightsFromBulk(chunk, model) {
     try {
         // Create a prompt message array for the model
         const prompt = `
-        You are provided with a raw dataset containing various metrics. 
-        Your task is to perform a comprehensive analysis and generate actionable insights based on the data. 
-        The insights must be supported by clear numbers, comparisons, and trends over time or between different categories. 
-        Additionally, make recommendations based on these insights to help drive strategic decision-making.
+        You are a seasoned data analyst with extensive experience in transforming raw datasets into valuable insights. Your task is to analyze the provided dataset comprehensively and generate actionable insights that can drive strategic decisions.
 
-        Your analysis should include the following:
-        1. Trend Identification: Identify key trends in the data. For example, look for increases or decreases in sales, customer growth, website traffic, or other relevant metrics over a specific period. Quantify these changes using percentage growth or decline.
-        2. Comparative Analysis: Compare different segments of data, such as regions, departments, products, or customer demographics. Highlight which groups are performing better or worse.
-        3. Performance Metrics: Identify key performance indicators (KPIs) and provide numerical insights such as average values, max/min, or total sums. Use percentages to showcase significant deviations or improvements.
-        4. Suggestions and Recommendations: Based on the analysis, suggest practical recommendations or strategies to improve performance. Support these suggestions with data-backed reasoning.
-        5. Anomalies and Opportunities: Identify any anomalies or unexpected data points, such as sudden spikes or dips. Explain potential causes and suggest corrective actions or opportunities for improvement.
+        Here are the details of the dataset:  
+        - Data Metrics:   
+        - Analysis Period:   
+        - Categories to Compare:   
 
-        Make sure to include all the relevant numbers, comparisons, and percentage changes, along with explanations of their significance. Summarize your findings with a clear action plan, highlighting potential areas for optimization or risk mitigation.
+        In your analysis, focus on the following areas:  
+        - Trend Identification: Identify and quantify key trends, noting percentage changes in metrics over time.  
+        - Comparative Analysis: Compare performance across specified categories and highlight which segments are excelling or underperforming.  
+        - Performance Metrics: Extract key performance indicators, providing numerical insights and noting significant deviations.  
+        - Suggestions and Recommendations: Offer practical recommendations with data-backed reasoning for improving performance.  
+        - Anomalies and Opportunities: Identify unexpected data points and suggest corrective actions or improvement opportunities.  
 
+        Ensure your insights are clear, concise, and presented in a structured format that facilitates understanding. Include relevant numbers, comparisons, and percentage changes with rational explanations to support your findings. 
 
-
-        Data :${JSON.stringify(chunk)}
-
+         Data :${JSON.stringify(chunk)}
 `;
         
         const response = await model.invoke(prompt);

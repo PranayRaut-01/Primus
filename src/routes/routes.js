@@ -344,7 +344,7 @@ router.post('/uploadSheet',authUser, upload.single('file'), async (req, res) =>{
           }
         
           const result = await saveDataFromExcleToDb(req, res, dbDetail)
-          const data = await DatabaseCredentials.updateOne({ userId: userId ,database: userId}, { $set: { schema: result } })
+          const data = await DatabaseCredentials.updateOne({ userId: userId ,database: userId}, { $set: { schema: result, aliasName:fileName } })
 
           res.status(200).send({ status: true, message: "sheet uploaded successfully",data: data});
   } catch (err) {

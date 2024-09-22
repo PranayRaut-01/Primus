@@ -11,7 +11,7 @@ const __dirname = dirname(__filename);
 
 async function saveDataFromExcleToDb(req, res, dbDetail) {
     try {
-        const tableName = "table1";
+        const tableName = "Uploaded_sheet";
         const filePath = req.file.path
         const workbook = xlsx.readFile(filePath);
         const sheetName = workbook.SheetNames[0];
@@ -105,7 +105,7 @@ async function saveDataFromExcleToDb(req, res, dbDetail) {
 
 async function sanitizeColumnName(name, maxLength = 64) {
     try {
-        if (!name) return ''; // Handle null or undefined names
+        if (!name) return ; // Handle null or undefined names
         let sanitized = name.trim();
         sanitized = sanitized.replace(/[^a-zA-Z0-9_]/g, '_');
         if (sanitized.length > maxLength) {
@@ -113,7 +113,7 @@ async function sanitizeColumnName(name, maxLength = 64) {
             sanitized = sanitized.substring(0, maxLength);
         }
         sanitized = sanitized.trim();
-        return sanitized.toLowercase();
+        return sanitized.toLowerCase();
     } catch (err) {
         console.error("Error sanitizing column name:", err);
         return ''; 
