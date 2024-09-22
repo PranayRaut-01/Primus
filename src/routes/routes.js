@@ -430,16 +430,16 @@ router.post('/graphData', async(req, res) => {
       data: data.map(row => row[yaxis1]),
       fill: false,  // For line charts to disable filling under the line
       yAxisID: "y-axis-1" , // If you have multiple y-axes,
-      borderColor: Utils.CHART_COLORS.red,
-      backgroundColor: Utils.transparentize(Utils.CHART_COLORS.red, 0.5),
+      borderColor: 'rgba(255, 99, 132, 1)', // Red border color
+      backgroundColor: 'rgba(255, 99, 132, 0.2)' // Red background color with opacity
     },
     ...(yaxis2 ? {
       label: yaxis2,
       data:  yaxis2 ? data.map(row => row[yaxis2]) : [],
       fill: false,
       yAxisID: "y-axis-2",
-      borderColor: Utils.CHART_COLORS.blue,
-      backgroundColor: Utils.transparentize(Utils.CHART_COLORS.blue, 0.5),
+      borderColor: 'rgba(54, 162, 235, 1)', // Blue border color
+      backgroundColor: 'rgba(54, 162, 235, 0.2)' // Blue background color with opacity
     }: {})
   ]
   };
