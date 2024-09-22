@@ -113,7 +113,7 @@ async function sanitizeColumnName(name, maxLength = 64) {
             sanitized = sanitized.substring(0, maxLength);
         }
         sanitized = sanitized.trim();
-        return sanitized;
+        return sanitized.toLowercase();
     } catch (err) {
         console.error("Error sanitizing column name:", err);
         return ''; 

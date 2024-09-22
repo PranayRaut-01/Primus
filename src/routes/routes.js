@@ -308,14 +308,19 @@ router.post('/uploadSheet',authUser, upload.single('file'), async (req, res) =>{
         if (fileExtension !== '.xlsx' && fileExtension !== '.xls') {
             throw new Error('Invalid file format. Only Excel files are allowed.');
         }
+        let fileName = path.basename(req.file.originalname, path.extname(req.file.originalname));
 
+        // Trim the file name to 15 characters and add "..." if it's longer than 15
+        if (fileName.length > 15) {
+            fileName = fileName.slice(0, 15) + '...';
+        }
 
         let dbData = await DatabaseCredentials.findOne({ userId:userId, database:userId})
 
         if(!dbData){
           dbData = await DatabaseCredentials.findOne({ _id:new ObjectId(process.env.DB_ID)})
           const config = {
-            userId: userId, dbtype: dbData.dbtype, database: userId, username: dbData.username, password: dbData.password,host:dbData.host, aliasName:"sheet"}
+            userId: userId, dbtype: dbData.dbtype, database: userId, username: dbData.username, password: dbData.password,host:dbData.host, aliasName:fileName}
           const dbCreation = await createDb(config)
           if(dbCreation){
             const document = new DatabaseCredentials(config);

@@ -120,17 +120,24 @@ async function getData(input, session_doc, dbDetail, model) {
                         let insights = [];
 
                         // Iterate over each chunk and generate insights
-                        for (let i = 0; i < chunks.length; i++) {
-                            const chunk = chunks[i];
-                            console.log(`Processing chunk ${i + 1}/${chunks.length}`);
-
-                            // Generate insights for the chunk using the model
-                            const chunkInsight = await generateInsightsFromChunk(chunk, model);
-                            insights.push(chunkInsight);
-                        }
+                        const chunkPromises = chunks.map((chunk, index) => {
+                            console.log(`Processing chunk ${index + 1}/${chunks.length}`);
+                            return generateInsightsFromChunk(chunk, model);
+                        });
+                        
+                        Promise.all(chunkPromises)
+                          .then(chunkInsights => {
+                            insights.push(...chunkInsights);
+                            console.log('All chunks processed successfully');
+                            // Continue further processing if needed
+                          })
+                          .catch(error => {
+                            console.error('Error processing chunks:', error);
+                            // Handle the error as needed
+                          });
 
                         // Combine all insights into a final summary
-                        const finalSummary = insights.join(' | ');
+                        const finalSummary = insights.join(' , ');
                         const finalData = await generateInsightsFromBulk(finalSummary,model)
                         // console.log("Summary of insights: ", finalSummary);
                         session_doc.summary = finalData;
