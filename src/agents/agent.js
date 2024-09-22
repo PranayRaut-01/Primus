@@ -46,6 +46,8 @@ async function callAgent(input, chat_history=[], schema, dbDetail, llm,session_d
             },
         });
 
+        input = await queryRefine(input,model)
+
         // Create the executor
         const agentExecutor = new AgentExecutor({
             agent,
@@ -71,15 +73,15 @@ async function callAgent(input, chat_history=[], schema, dbDetail, llm,session_d
         if(query_check){
             const data = await extractQuery(session_doc,response.output,model)
             await getData(data.sql_query,session_doc,dbDetail,model)
-            session_doc.agent_history =`${data.response},${session_doc.SQL_query?session_doc.SQL_query:""}`
+            session_doc.agent_history =`${session_doc.summary?session_doc.summary:data.response}`
             session_doc.agent = data.response
         }else{
-            session_doc.agent_history = `${response.output},${session_doc.SQL_query?session_doc.SQL_query:""}`
+            session_doc.agent_history = `${session_doc.summary?session_doc.summary:response.output}`
             session_doc.agent = response.output
         }
 
         if(session_doc.DB_response && session_doc.SQL_query){
-            const data = await generateJson(input, session_doc.SQL_query,model)
+            const data = await generateJson(input, session_doc.summary?session_doc.summary:response.output,model)
             session_doc.query_description = data.query_description?data.query_description:null
             session_doc.followup = data.followup?data.followup:null
         }
@@ -95,7 +97,7 @@ async function getData(input, session_doc, dbDetail, model) {
     {
         const maxRetries = 2; 
         let attempt = 0;
-        const chunkSize = 5; // Define chunk size to break large responses
+        const chunkSize = 20; // Define chunk size to break large responses
         const executeQuery = async (query) => {
             try {
                 if (attempt > maxRetries) {
@@ -112,8 +114,7 @@ async function getData(input, session_doc, dbDetail, model) {
                     session_doc.DB_response = sql_result;
                     console.log("Response from SQL query: ", sql_result);
 
-                    // Check if the SQL response is large
-                    if (sql_result.length > chunkSize) {
+                    
                         // If the result is large, break it into chunks and summarize
                         const chunks = chunkData(sql_result, chunkSize);
                         let insights = [];
@@ -129,16 +130,18 @@ async function getData(input, session_doc, dbDetail, model) {
                         }
 
                         // Combine all insights into a final summary
-                        const finalSummary = insights.join(' ');
-
-                        console.log("Summary of insights: ", finalSummary);
-                        // session_doc.summary = finalSummary;
-                        return `Summary generated: ${finalSummary}`;
-                    } else {
-                        // If the result is small, return the data directly
-                        return `Data generated: ${sql_result}`;
+                        const finalSummary = insights.join(' | ');
+                        const finalData = await generateInsightsFromBulk(finalSummary,model)
+                        // console.log("Summary of insights: ", finalSummary);
+                        session_doc.summary = finalData;
+                        return `Data generated successfully `;
                     }
-                } else {
+                    //  else {
+                    //     // If the result is small, return the data directly
+                    //     return `Data generated: ${sql_result}`;
+                    // }
+                // }
+                 else {
                     if (sql_result.message.includes("ETIMEDOUT")) {
                         attempt++;
                         return await executeQuery(newQuery);
@@ -171,7 +174,7 @@ function chunkData(data, chunkSize) {
 async function generateInsightsFromChunk(chunk, model) {
     try {
         // Create a prompt message array for the model
-        const prompt = `Summarize the following data:\n${JSON.stringify(chunk)}`;
+        const prompt = `Summarize the following data and summary should be in brief and must contains some numbers or values in numaric form also not include more than 50 to 100 keywords:\n${JSON.stringify(chunk)}`;
         
         const response = await model.invoke(prompt);
         
@@ -183,6 +186,61 @@ async function generateInsightsFromChunk(chunk, model) {
 }
 
 
+async function generateInsightsFromBulk(chunk, model) {
+    try {
+        // Create a prompt message array for the model
+        const prompt = `
+        You are provided with a raw dataset containing various metrics. 
+        Your task is to perform a comprehensive analysis and generate actionable insights based on the data. 
+        The insights must be supported by clear numbers, comparisons, and trends over time or between different categories. 
+        Additionally, make recommendations based on these insights to help drive strategic decision-making.
+
+        Your analysis should include the following:
+        1. Trend Identification: Identify key trends in the data. For example, look for increases or decreases in sales, customer growth, website traffic, or other relevant metrics over a specific period. Quantify these changes using percentage growth or decline.
+        2. Comparative Analysis: Compare different segments of data, such as regions, departments, products, or customer demographics. Highlight which groups are performing better or worse.
+        3. Performance Metrics: Identify key performance indicators (KPIs) and provide numerical insights such as average values, max/min, or total sums. Use percentages to showcase significant deviations or improvements.
+        4. Suggestions and Recommendations: Based on the analysis, suggest practical recommendations or strategies to improve performance. Support these suggestions with data-backed reasoning.
+        5. Anomalies and Opportunities: Identify any anomalies or unexpected data points, such as sudden spikes or dips. Explain potential causes and suggest corrective actions or opportunities for improvement.
+
+        Make sure to include all the relevant numbers, comparisons, and percentage changes, along with explanations of their significance. Summarize your findings with a clear action plan, highlighting potential areas for optimization or risk mitigation.
+
+
+
+        Data :${JSON.stringify(chunk)}
+
+`;
+        
+        const response = await model.invoke(prompt);
+        
+        return response.content || "No insights generated";
+    } catch (error) {
+        console.error("Error generating insights: ", error);
+        return "Error generating insights";
+    }
+}
+
+async function queryRefine( query, model) {
+    const prompt = `
+        "Given a user query, rephrase it into a more SQL-compatible query structure. Ensure the following:
+
+Extraction and Grouping: Identify the main entity (e.g., agent, order) and ensure the query includes extraction of all relevant details. If applicable, group the data by the primary entity (e.g., group by agent, group by user).
+Joins: If the query involves multiple entities (e.g., users and orders), join the relevant tables.
+Aggregation: If the query involves multiple records per entity (e.g., multiple documents, multiple orders), include aggregation functions (e.g., SUM, COUNT, AVG) to calculate values across groups.
+Conditions: Apply any time constraints or filters (e.g., last month, active users).
+Output: Ensure the query returns the necessary details for each group.
+Examples:
+
+User Query: "I want all the details of the agent."
+Rewritten SQL Query: "Extract all details related to the agent, grouped by agent, and calculate aggregate values (if multiple records exist)."
+User Query: "Provide all the details of orders by users last month."
+Rewritten SQL Query: "Fetch all order details from last month, join with the user table, and group orders by user. Calculate aggregate fields after grouping."
+
+        userinput Query: ${query}
+    `
+    const response = await model.invoke(prompt);
+    return response.content.replace("Rewritten SQL Query:","") || query // Remove any extra whitespace
+
+}
 
 
 
@@ -195,6 +253,9 @@ async function generateJson(data, query, model) {
     return JSON.parse(jsonData); // Return the query directly as a string
 
 }
+
+
+
 
 async function extractQuery(session_doc,input, model) {
     const prompt = await queryExecuter_prompt(input)
