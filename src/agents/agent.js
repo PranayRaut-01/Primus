@@ -122,7 +122,7 @@ async function getData(input, session_doc, dbDetail, model) {
                         // Iterate over each chunk and generate insights
                         const chunkPromises = chunks.map((chunk, index) => {
                             console.log(`Processing chunk ${index + 1}/${chunks.length}`);
-                            return generateInsightsFromChunk(chunk, model);
+                            return generateInsightsFromChunk(chunk, model, session_doc.input);
                         });
                         
                         // Wait for all chunk promises to resolve
@@ -134,7 +134,7 @@ async function getData(input, session_doc, dbDetail, model) {
 
                         // Combine all insights into a final summary
                         const finalSummary = insights.join(' \n ');
-                        const finalData = await generateInsightsFromBulk(finalSummary,model)
+                        const finalData = await generateInsightsFromBulk(finalSummary,model,session_doc.input)
                         // console.log("Summary of insights: ", finalSummary);
                         session_doc.summary = finalData;
                         return `Data generated successfully `;
@@ -174,10 +174,12 @@ function chunkData(data, chunkSize) {
 }
 
 // Function to generate insights from a chunk using the LLM
-async function generateInsightsFromChunk(chunk, model) {
+async function generateInsightsFromChunk(chunk, model, query) {
     try {
         // Create a prompt message array for the model
-        const prompt = `Summarize the following data and summary should be in brief and must contains some numbers or values in numaric form also not include more than 50 to 100 keywords:\n${JSON.stringify(chunk)}`;
+        const prompt = `Summarize the following data and summary should be in brief and must contains some numbers or values in numaric form also not include more than 50 to 100 keywords:
+        Here the user input ${query}
+        \n${JSON.stringify(chunk)}`;
         
         const response = await model.invoke(prompt);
         
@@ -189,7 +191,7 @@ async function generateInsightsFromChunk(chunk, model) {
 }
 
 
-async function generateInsightsFromBulk(chunk, model) {
+async function generateInsightsFromBulk(chunk, model, query) {
     try {
         // Create a prompt message array for the model
         const prompt = `
@@ -208,8 +210,9 @@ async function generateInsightsFromBulk(chunk, model) {
         - Anomalies and Opportunities: Identify unexpected data points and suggest corrective actions or improvement opportunities.  
 
         Ensure your insights are clear, concise, and presented in a structured format that facilitates understanding. Include relevant numbers, comparisons, and percentage changes with rational explanations to support your findings. 
+        User Requiremnt : ${query}
+        Data :${JSON.stringify(chunk)}
 
-         Data :${JSON.stringify(chunk)}
 `;
         
         const response = await model.invoke(prompt);
@@ -223,17 +226,23 @@ async function generateInsightsFromBulk(chunk, model) {
 
 async function queryRefine( query, model,schema) {
     const columnNames = schema.map(item => item.column_name);
+
     const prompt = `
-        "Given a user query, rephrase it into a more SQL-compatible query structure. Ensure the following:
+        "Given a user input, rephrase it into a more compatible query structure, below you have given an column array relate the user keywords with column name and refine the query. Ensure the following:
 
         Extraction and Grouping: Identify the main entity (e.g., agent, order, users, phone numbers etc) and ensure the query includes extraction of all relevant details. If applicable, group the data by the primary entity (e.g., group by agent, group by user, geopued by picked entity).
         Joins: If the query involves multiple entities (e.g., users and orders), join the relevant tables.
         Aggregation: If the query involves multiple records per entity (e.g., multiple documents, multiple orders), include aggregation functions (e.g., SUM, COUNT, AVG) to calculate values across groups.
-        Conditions: Apply any time constraints or filters (e.g., last month, active users).
-        Refrence : take the refrence of the below columns to relate the keyword and only onclude those keywors that include in the colums. these colums are the columns of database.
+        Conditions: Apply any time constraints or filters (e.g., last month, date range, time range etc.).
         Output: Ensure the query returns the necessary details for each group.
-        Column : ${JSON.stringify(columnNames)};
-        userinput Query: ${query}
+        Examples:
+
+        User input: "I want all the details of the agent."
+        Rewritten input: "Extract all details related to the agent, grouped by agent, and calculate aggregate values (if multiple records exist)."
+        User input: "Provide all the details of orders by users last month."
+        Rewritten input: "Fetch all order details from last month, join with the user table, and group orders by user. Calculate aggregate fields after grouping."
+        columns: ${JSON.stringify(columnNames)}
+        userinput input: ${query}
     `
     const response = await model.invoke(prompt);
     return response.content.replace("Rewritten SQL Query:","") || query // Remove any extra whitespace
