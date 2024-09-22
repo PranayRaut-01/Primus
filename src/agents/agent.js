@@ -46,7 +46,7 @@ async function callAgent(input, chat_history=[], schema, dbDetail, llm,session_d
             },
         });
 
-        input = await queryRefine(input,model)
+        input = await queryRefine(input,model,JSON.parse(schema))
 
         // Create the executor
         const agentExecutor = new AgentExecutor({
@@ -221,22 +221,18 @@ async function generateInsightsFromBulk(chunk, model) {
     }
 }
 
-async function queryRefine( query, model) {
+async function queryRefine( query, model,schema) {
+    const columnNames = schema.map(item => item.column_name);
     const prompt = `
         "Given a user query, rephrase it into a more SQL-compatible query structure. Ensure the following:
 
-Extraction and Grouping: Identify the main entity (e.g., agent, order) and ensure the query includes extraction of all relevant details. If applicable, group the data by the primary entity (e.g., group by agent, group by user).
-Joins: If the query involves multiple entities (e.g., users and orders), join the relevant tables.
-Aggregation: If the query involves multiple records per entity (e.g., multiple documents, multiple orders), include aggregation functions (e.g., SUM, COUNT, AVG) to calculate values across groups.
-Conditions: Apply any time constraints or filters (e.g., last month, active users).
-Output: Ensure the query returns the necessary details for each group.
-Examples:
-
-User Query: "I want all the details of the agent."
-Rewritten SQL Query: "Extract all details related to the agent, grouped by agent, and calculate aggregate values (if multiple records exist)."
-User Query: "Provide all the details of orders by users last month."
-Rewritten SQL Query: "Fetch all order details from last month, join with the user table, and group orders by user. Calculate aggregate fields after grouping."
-
+        Extraction and Grouping: Identify the main entity (e.g., agent, order, users, phone numbers etc) and ensure the query includes extraction of all relevant details. If applicable, group the data by the primary entity (e.g., group by agent, group by user, geopued by picked entity).
+        Joins: If the query involves multiple entities (e.g., users and orders), join the relevant tables.
+        Aggregation: If the query involves multiple records per entity (e.g., multiple documents, multiple orders), include aggregation functions (e.g., SUM, COUNT, AVG) to calculate values across groups.
+        Conditions: Apply any time constraints or filters (e.g., last month, active users).
+        Refrence : take the refrence of the below columns to relate the keyword and only onclude those keywors that include in the colums. these colums are the columns of database.
+        Output: Ensure the query returns the necessary details for each group.
+        Column : ${JSON.stringify(columnNames)};
         userinput Query: ${query}
     `
     const response = await model.invoke(prompt);
