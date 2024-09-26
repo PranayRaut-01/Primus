@@ -82,7 +82,7 @@ async function retrieveRelevantSchema(query, indexName) {
         const relevantSchemas = similaritySearchResults.map((doc) => doc.pageContent);
         console.log('Retrieved relevant schema sections:', relevantSchemas);
 
-        return JSON.stringify(relevantSchemas);
+        return (relevantSchemas);
     } catch (error) {
         console.log(error);
         return {

@@ -229,7 +229,7 @@ async function queryRefine( query, model,schema) {
 
     const prompt = `
         "Given a user input, rephrase it into a more compatible query structure, below you have given an column array relate the user keywords with column name and refine the query. Ensure the following:
-
+        Note: please return same query it is not related to columns or if its related to general queryies like greeting , graditues etc.
         Extraction and Grouping: Identify the main entity (e.g., agent, order, users, phone numbers etc) and ensure the query includes extraction of all relevant details. If applicable, group the data by the primary entity (e.g., group by agent, group by user, geopued by picked entity).
         Joins: If the query involves multiple entities (e.g., users and orders), join the relevant tables.
         Aggregation: If the query involves multiple records per entity (e.g., multiple documents, multiple orders), include aggregation functions (e.g., SUM, COUNT, AVG) to calculate values across groups.
