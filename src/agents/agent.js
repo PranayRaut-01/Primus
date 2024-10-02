@@ -212,7 +212,6 @@ async function generateInsightsFromBulk(chunk, model, query) {
         Ensure your insights are clear, concise, and presented in a structured format that facilitates understanding. Include relevant numbers, comparisons, and percentage changes with rational explanations to support your findings. 
         User Requiremnt : ${query}
         Data :${JSON.stringify(chunk)}
-
 `;
         
         const response = await model.invoke(prompt);

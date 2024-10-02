@@ -22,24 +22,12 @@ async function saveDataFromExcleToDb(req, res, dbDetail) {
             throw new Error('The Excel file appears to be empty or malformed.');
         }
 
-        // Check for empty columns
-        const nonEmptyColumnIndexes = headers
-            .map((header, index) => index)
-            .filter(index => rows.some(row => row[index] !== undefined && row[index] !== null && row[index] !== ''));
-
-        if (nonEmptyColumnIndexes.length === 0) {
-            throw new Error('No valid columns found with data.');
-        }
-
         // Filter out only non-empty columns
-        const filteredHeaders = await Promise.all(nonEmptyColumnIndexes.map(index => sanitizeColumnName(headers[index])));
-        //  console.log(filteredHeaders)
-        const filteredRows = await Promise.all(rows.map(row => nonEmptyColumnIndexes.map(index => row[index])))
-        console.log(filteredRows)
-
-        // Determine the data type for each column based on sample data
+        const filteredHeaders = await Promise.all(headers.map(index => sanitizeColumnName(index)));
+   
+       // Determine the data type for each column based on sample data
         const columnTypes = await Promise.all(
-            filteredHeaders.map((header, index) => getColumnType(filteredRows.map(row => row[index])))
+            filteredHeaders.map((header, colIndex) => getColumnType(rows.map(row => row[colIndex]))) // Pass the values for each column
         );
         console.log(columnTypes)
 
@@ -62,19 +50,14 @@ async function saveDataFromExcleToDb(req, res, dbDetail) {
         // Log the number of columns vs. number of values
         console.log('Columns:', filteredHeaders);
         console.log('Number of columns:', filteredHeaders.length);
-        console.log('Number of values for each row:', filteredRows.map(row => row.length));
-
 
         // Create the table
         await connection.query(createTableQuery);
 
         // Insert data into the table
-        const insertDataQuery = `
-            INSERT INTO \`${tableName}\` (${filteredHeaders.map(header => `\`${header}\``).join(', ')})
-            VALUES ?;
-        `;
+        const insertDataQuery = `INSERT INTO \`${tableName}\` (${filteredHeaders.map(header => `\`${header}\``).join(', ')}) VALUES ?;`;
 
-        const values = filteredRows.map(row => row.map(value => value !== undefined ? value : null));
+        const values = rows.map(row => row.map(value => value !== undefined ? value : null));
 
         console.log(values)
 
@@ -99,7 +82,7 @@ async function saveDataFromExcleToDb(req, res, dbDetail) {
         return dbTable;
     } catch (err) {
         console.error(err)
-        return {message : err}
+        res.status(500).send({ status: false, message: err.message });
     }
 }
 
@@ -135,18 +118,27 @@ async function getColumnType(sampleData) {
         // Check if all values are floats
         if (allValues.every(value => !isNaN(parseFloat(value)) && value === String(parseFloat(value)))) return 'FLOAT';
 
-        // Check if all values are dates in 'YYYY-MM-DD' format
-        if (allValues.every(value => !isNaN(Date.parse(value)) && value.includes('-'))) return 'DATE';
+        // Regex patterns for different date formats
+        const datePattern = /^\d{4}-\d{2}-\d{2}$/; // 'YYYY-MM-DD'
+        const datetimePattern = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/; // 'YYYY-MM-DD HH:MM:SS'
+        const timestampPattern = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})?$/; // 'YYYY-MM-DDTHH:MM:SS' with optional timezone
 
-        // Check if all values are datetimes in 'YYYY-MM-DDTHH:MM:SS' format
-        if (allValues.every(value => !isNaN(Date.parse(value)) && value.includes('T'))) return 'DATETIME';
+        // Check if all values are dates in 'YYYY-MM-DD' format
+        if (allValues.every(value => datePattern.test(value) && !isNaN(Date.parse(value)))) return 'DATE';
+
+        // Check if all values are datetime in 'YYYY-MM-DD HH:MM:SS' format
+        if (allValues.every(value => datetimePattern.test(value) && !isNaN(Date.parse(value)))) return 'DATETIME';
+
+        // Check if all values are timestamp in 'YYYY-MM-DDTHH:MM:SS' (ISO 8601 format) format
+        if (allValues.every(value => timestampPattern.test(value) && !isNaN(Date.parse(value)))) return 'TIMESTAMP';
 
         // Default to VARCHAR if none of the above conditions are met
         return 'VARCHAR(255)';
     } catch (err) {
-        console.error(err)
+        console.error(err);
     }
-};
+}
+
 
 export {
     saveDataFromExcleToDb
