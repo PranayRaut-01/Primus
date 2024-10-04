@@ -82,6 +82,13 @@ router.post('/login', async (req, res) => {
       return res.status(404).json({ status: false, message: "Invalid username or password" });
     }
 
+    if (!user.isVerified) {
+      return res.status(403).json({ 
+        status: false, 
+        message: "User not verified, please contact contact@agino.tech" 
+      });
+    }
+
     // Compare the password
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
