@@ -6,7 +6,8 @@ const userSchema = new mongoose.Schema(
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true }, // encrypted password
     //dbType : {type:String},
-    llmModel:{type:String,default : 'openAI'}
+    llmModel:{type:String,default : 'openAI'},
+    isVerified: { type: Boolean, default: false }
   },
   { timestamps: true }
 );
