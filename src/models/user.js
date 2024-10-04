@@ -7,7 +7,7 @@ const userSchema = new mongoose.Schema(
     password: { type: String, required: true }, // encrypted password
     //dbType : {type:String},
     llmModel:{type:String,default : 'openAI'},
-    isVerified: { type: Boolean, default: false }
+    isVerified: { type: Boolean, default: true }
   },
   { timestamps: true }
 );
