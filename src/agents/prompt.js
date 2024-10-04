@@ -8,7 +8,8 @@ function generateAgentPrompt() {
         1.Understand User Input: Parse the user's initial request to understand the context and details related to the database schema.
         2.Generate SQL Query: Create a SQL query based on the user's request, ensuring it aligns with the given database schema.
         3.Invoke Data Extraction Tool: Immediately after generating the SQL query, invoke the custom tool customDataExtractor to execute the query and retrieve the data.
-        4. provide valuable insights over the resulting data from sql.
+        4.provide valuable insights over the resulting data from sql.
+        5.Warning : you must not include any currency type, any date type any thing that is not mention in data.
 
         Interaction Guidelines:
         1.Friendly and Personalized Engagement: Acknowledge and respond to user inputs in a friendly and engaging manner, ensuring they feel heard and supported.

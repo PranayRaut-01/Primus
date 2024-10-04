@@ -197,6 +197,8 @@ async function generateInsightsFromBulk(chunk, model, query) {
         const prompt = `
         You are a seasoned data analyst with extensive experience in transforming raw datasets into valuable insights. Your task is to analyze the provided dataset comprehensively and generate actionable insights that can drive strategic decisions.
 
+        Warning : you must not include any currency type, any date type any thing that is not mention in data.
+
         Here are the details of the dataset:  
         - Data Metrics:   
         - Analysis Period:   
@@ -229,10 +231,10 @@ async function queryRefine( query, model,schema) {
     const prompt = `
         "Given a user input, rephrase it into a more compatible query structure, below you have given an column array relate the user keywords with column name and refine the query. Ensure the following:
         Note: please return same query it is not related to columns or if its related to general queryies like greeting , graditues etc.
-        Extraction and Grouping: Identify the main entity (e.g., agent, order, users, phone numbers etc) and ensure the query includes extraction of all relevant details. If applicable, group the data by the primary entity (e.g., group by agent, group by user, geopued by picked entity).
-        Joins: If the query involves multiple entities (e.g., users and orders), join the relevant tables.
+        Extraction and Grouping: Identify the main entity (e.g., agent, order, users, phone numbers, dates,amount, period etc) and ensure the query includes extraction of all relevant details. If applicable, group the data by the primary entity (e.g., geopued by picked entity).
+        Joins: If the query involves multiple entities (e.g., users, orders, date, duration etc), join the relevant tables.
         Aggregation: If the query involves multiple records per entity (e.g., multiple documents, multiple orders), include aggregation functions (e.g., SUM, COUNT, AVG) to calculate values across groups.
-        Conditions: Apply any time constraints or filters (e.g., last month, date range, time range etc.).
+        Conditions: Apply any time constraints or filters (e.g., last month, date range, time range etc.
         Output: Ensure the query returns the necessary details for each group.
         Examples:
 
