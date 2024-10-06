@@ -46,7 +46,7 @@ async function callAgent(input, chat_history=[], schema, dbDetail, llm,session_d
             },
         });
 
-        input = await queryRefine(input,model,JSON.parse(schema))
+        // input = await queryRefine(input,model,JSON.parse(schema))
 
         // Create the executor
         const agentExecutor = new AgentExecutor({
