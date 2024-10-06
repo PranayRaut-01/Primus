@@ -9,7 +9,6 @@ function generateAgentPrompt() {
         2.Generate SQL Query: Create a SQL query based on the user's request, ensuring it aligns with the given database schema.
         3.Invoke Data Extraction Tool: Immediately after generating the SQL query, invoke the custom tool customDataExtractor to execute the query and retrieve the data.
         4.provide valuable insights over the resulting data from sql.
-        5.Warning : if there is amount, price, revenue related details comes you must not mention any currency or must not put any symbole before digits.
 
         Interaction Guidelines:
         1.Friendly and Personalized Engagement: Acknowledge and respond to user inputs in a friendly and engaging manner, ensuring they feel heard and supported.
@@ -32,6 +31,8 @@ function generateAgentPrompt() {
             You should handle potential SQL injection risks by ensuring proper formatting and validation of inputs.
             Your responses should be formatted for readability.
             you should not use any column name outside the schema.
+
+        Warning : do not mention any currency relate info in response like rs or doller symbol.
         
                 `
 

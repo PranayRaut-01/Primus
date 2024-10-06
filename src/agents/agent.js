@@ -178,8 +178,11 @@ async function generateInsightsFromChunk(chunk, model, query) {
     try {
         // Create a prompt message array for the model
         const prompt = `Summarize the following data and summary should be in brief and must contains some numbers or values in numaric form also not include more than 50 to 100 keywords:
+        Warning : do not mention any currency relate info in response like rs or doller symbol.
         Here the user input ${query}
-        \n${JSON.stringify(chunk)}`;
+        \n${JSON.stringify(chunk)}
+        
+        `;
         
         const response = await model.invoke(prompt);
         
@@ -197,7 +200,7 @@ async function generateInsightsFromBulk(chunk, model, query) {
         const prompt = `
         You are a seasoned data analyst with extensive experience in transforming raw datasets into valuable insights. Your task is to analyze the provided dataset comprehensively and generate actionable insights that can drive strategic decisions.
 
-        Warning : if there is amount, price, revenue related details comes you must not mention any currency or must not put any symbole before digits. 
+         Warning : do not mention any currency relate info in response like rs or doller symbol.
 
         Here are the details of the dataset:  
         - Data Metrics:   
@@ -205,15 +208,19 @@ async function generateInsightsFromBulk(chunk, model, query) {
         - Categories to Compare:   
 
         In your analysis, focus on the following areas:  
-        - Trend Identification: Identify and quantify key trends, noting percentage changes in metrics over time.  
-        - Comparative Analysis: Compare performance across specified categories and highlight which segments are excelling or underperforming.  
-        - Performance Metrics: Extract key performance indicators, providing numerical insights and noting significant deviations.  
+        - Trend Identification: Identify and quantify key trends, noting percentage changes in metrics over time.  (not mandatory)
+        - Comparative Analysis: Compare performance across specified categories and highlight which segments are excelling or underperforming.  (not mandatory)
+        - Performance Metrics: Extract key performance indicators, providing numerical insights and noting significant deviations.  (not mandatory)
         - Suggestions and Recommendations: Offer practical recommendations with data-backed reasoning for improving performance.  
         - Anomalies and Opportunities: Identify unexpected data points and suggest corrective actions or improvement opportunities.  
+
+        Warning : do not mention any currency relate info in response like rs or doller symbol.
 
         Ensure your insights are clear, concise, and presented in a structured format that facilitates understanding. Include relevant numbers, comparisons, and percentage changes with rational explanations to support your findings. 
         User Requiremnt : ${query}
         Data :${JSON.stringify(chunk)}
+
+
 `;
         
         const response = await model.invoke(prompt);

@@ -4,39 +4,13 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import * as dotenv from "dotenv";
+import { uploadToS3 } from '../controller/uploadToS3.js';
 dotenv.config();
 
 // Replacement for __dirname in ES Modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-
-
-// Upload file to AWS S3
-const uploadToS3 = async (filePath, bucketName, key) => {
-    try {
-        const s3 = new AWS.S3({
-            accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-            secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-            region: 'eu-north-1'
-        });
-    
-        const fileContent = fs.readFileSync(filePath);
-    
-        const params = {
-            Bucket: bucketName,
-            Key: key,
-            Body: fileContent,
-            ContentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        };
-
-        const data = await s3.upload(params).promise();
-        console.log(`File uploaded successfully. ${data.Location}`);
-        return data.Location
-    } catch (err) {
-        console.error(`Error uploading file from uploadToS3: ${err.message}`);
-    }
-};
 
 // Convert JSON to Excel
 async function convertJsonToExcel(json, filePath){
@@ -73,7 +47,14 @@ async function main(jsonData){
     // Upload to S3
     const bucketName = process.env.BUCKET_NAME;
     const key = `${fileName}`; // The key is the file path in the S3 bucket
-    const sheetUrl = await uploadToS3(filePath, bucketName, key);
+     // Set S3 upload parameters
+     const params = {
+        Bucket: bucketName,                   // S3 bucket name
+        Key: key,                             // The file path/key in the S3 bucket
+        filePath: filePath,                   // Local file path to upload
+        ContentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',  // Content type for Excel file                     
+    };
+    const sheetUrl = await uploadToS3(params);
 
     // Clean up the file after upload
     fs.unlinkSync(filePath); 
