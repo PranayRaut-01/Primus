@@ -145,9 +145,9 @@ async function getData(input, session_doc, dbDetail, model) {
                     // }
                 // }
                  else {
-                    if (sql_result.message.includes("ETIMEDOUT")) {
+                    if (sql_result?.message?.includes("ETIMEDOUT")) {
                         attempt++;
-                        return await executeQuery(newQuery);
+                        return await executeQuery(query);
                     } else {
                         const newQuery = await error_handler(query, dbDetail, sql_result, model);
                         attempt++;
@@ -156,6 +156,8 @@ async function getData(input, session_doc, dbDetail, model) {
                 }
             } catch (error) {
                 console.error("Error in custom tool function: ", error);
+                attempt++;
+                return await executeQuery(query);
             }
         };
 
