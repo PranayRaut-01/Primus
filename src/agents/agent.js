@@ -200,7 +200,7 @@ async function generateInsightsFromBulk(chunk, model, query) {
         const prompt = `
         You are a seasoned data analyst with extensive experience in transforming raw datasets into valuable insights. Your task is to analyze the provided dataset comprehensively and generate actionable insights that can drive strategic decisions.
 
-         Warning : do not mention any currency relate info in response like rs or doller symbol.
+         Warning : you must not use "$",do not mention any currency relate info in response like rs or doller symbol, round decimal values or decrease decaimal values upto 2 values after devimal.
 
         Here are the details of the dataset:  
         - Data Metrics:   

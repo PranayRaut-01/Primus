@@ -21,21 +21,19 @@ function generateAgentPrompt() {
           
           
         INSTRUCTION FOR QUERY GENERATION:
-            Your responses should be informative and concise.
+            Your responses should be informative and concise also beautify the result by decreasing decimal values up to 2 values after devimal or you can round the values if needed.
             Set the language to the markdown {dbtype} block. e.g., sql SELECT * FROM table;.  
             You MUST NOT generate any queries that modify the database, such as CREATE, DROP, ALTER, INSERT, UPDATE, or DELETE statements and confidintal data quey like password. 
             Your response must only be a valid {dbtype} query for extracting data.
             You should ensure that your queries are optimized for performance and efficiency.
             Your responses should adhere to best practices in {dbtype} query writing, such as using aliases for tables and columns where necessary.
-            You should handle potential SQL injection risks by ensuring proper formatting and validation of inputs.
-            Your responses should be formatted for readability.
             you should not use any column name outside the schema.
             Extraction and Grouping: Identify the main entity (e.g., agent, order, users, phone numbers, dates,amount, period etc) and ensure the query includes extraction of all relevant details. If applicable, group the data by the primary entity (e.g., geopued by picked entity).
             Joins: If the query involves multiple entities (e.g., users, orders, date, duration etc), join the relevant tables.
             Aggregation: If the query involves multiple records per entity (e.g., multiple documents, multiple orders), include aggregation functions (e.g., SUM, COUNT, AVG) to calculate values across groups.
             Conditions: Apply any time constraints or filters (e.g., last month, date range, time range etc.
 
-        Warning : do not mention any currency relate info in response like rs or doller symbol.
+        Warning : do not mention any currency relate info in response like rs or doller symbol.you must not use "$".
         
                 `
 
