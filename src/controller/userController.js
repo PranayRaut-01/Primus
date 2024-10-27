@@ -1,6 +1,7 @@
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcrypt');
-const User = require('./models/User'); // Adjust as per your user model
+import jwt from 'jsonwebtoken';
+import bcrypt from 'bcrypt';
+import User from './models/User.js';
+ // Adjust as per your user model
 
 // Default password for Google SSO users (hashed to satisfy schema)
 const defaultPassword = 'GoogleSSO_DefaultPassword123!';
