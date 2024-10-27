@@ -51,9 +51,12 @@ const authenticateUser = async (user, password) => {
 };
 
 // Main loginUser function
-async function loginUser(req, res, profile = null) {
+async function loginUser(req, res) {
   try {
+    console.log("inside login funtion")
     let user, token;
+    let {profile} = req
+    console.log(profile)
 
     if (profile) {
       // Google SSO flow
@@ -102,27 +105,24 @@ async function loginUser(req, res, profile = null) {
 
 
 // Signup route
-async function signupUser (req, res, profile = null) {
-  
-
-
-
+async function signupUser (req, res) {
   try {
-    // Check if user already exists
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({ status: false, message: 'User already exists' });
-    }
-
     let newUser;
     
     // If profile is provided, this is a Google SSO signup
-    if (profile) {
-      const { email, verified_email, name, googleId } = profile;
+    if (req.profile) {
+      const { email, verified_email, name, googleId } = req.profile;
 
       if (!email) {
         return res.status(400).send({ status: false, message: "Email is required" });
       }
+
+      const existingUser = await User.findOne({ email });
+      if (existingUser) {
+        return res.status(400).json({ status: false, message: 'User already exists' });
+      }
+
+
 
       newUser = new User({
         username: name, // May come from the Google profile or be optional

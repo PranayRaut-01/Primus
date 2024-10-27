@@ -22,6 +22,7 @@ import { dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { uploadToS3 } from '../controller/uploadToS3.js';
 import { loginUser ,signupUser } from '../controller/userController.js';
+import axios from 'axios';
 const ObjectId = mongoose.Types.ObjectId;
 dotenv.config();
 
@@ -40,6 +41,8 @@ router.get('/', async (req, res) => {
 router.post('/signup', signupUser)
 
 router.get('/auth/google', (req, res) => {
+  console.log("inside auth google")
+  console.log(process.env.CLIENT_ID)
   const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${process.env.CLIENT_ID}&redirect_uri=${process.env.REDIRECT_URI}&response_type=code&scope=profile email`;
   res.redirect(url);
 });
@@ -66,16 +69,17 @@ router.get('/auth/google/callback', async (req, res) => {
 
     // Code to handle user authentication and retrieval using the profile data
     console.log(profile); // For now, just log the profile data
+    req.profile=profile
 
     const existingUser = await User.findOne({ email:profile.email });
     if (existingUser){
-      loginUser(req,res,profile)
+      loginUser(req,res)
     }else{
-      signupUser(req,res,profile)
+      signupUser(req,res)
     }
     //res.send('Login successful!');
   } catch (error) {
-    console.error('Error:', error.response.data.error);
+    console.error('Error:', error);
     res.redirect('/login');
   }
 })
