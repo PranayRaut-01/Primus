@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
-import User from './models/User.js';
+import {User} from '../models/user.js';
  // Adjust as per your user model
 
 // Default password for Google SSO users (hashed to satisfy schema)
