@@ -50,10 +50,10 @@ router.get('/auth/google/callback', async (req, res) => {
   try {
     // Exchange authorization code for access token
     const { data } = await axios.post('https://oauth2.googleapis.com/token', {
-      client_id: CLIENT_ID,
-      client_secret: CLIENT_SECRET,
+      client_id: process.env.CLIENT_ID,
+      client_secret: process.env.CLIENT_SECRET,
       code,
-      redirect_uri: REDIRECT_URI,
+      redirect_uri: process.env.REDIRECT_URI,
       grant_type: 'authorization_code',
     });
 
