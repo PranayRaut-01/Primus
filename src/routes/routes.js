@@ -21,6 +21,7 @@ import mongoose from 'mongoose';
 import { dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { uploadToS3 } from '../controller/uploadToS3.js';
+import { loginUser ,signupUser } from '../controller/userController.js';
 const ObjectId = mongoose.Types.ObjectId;
 dotenv.config();
 
@@ -36,74 +37,50 @@ router.get('/', async (req, res) => {
   res.status(200).send("<h1>Welcome to Agino tech</h1>")
 })
 
-router.post('/signup', async (req, res) => {
-  const { username, email, password } = req.body;
+router.post('/signup', signupUser)
 
-  if (!username || !email || !password) {
-    return res.status(400).send({ status: true, message: "Mandatory parameter missing" });
-  }
+router.get('/auth/google', (req, res) => {
+  const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${process.env.CLIENT_ID}&redirect_uri=${process.env.REDIRECT_URI}&response_type=code&scope=profile email`;
+  res.redirect(url);
+});
+
+router.get('/auth/google/callback', async (req, res) => {
+  const { code } = req.query;
 
   try {
-    // Check if user already exists
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({ status: false, message: 'User already exists' });
-    }
-
-    // Hash the password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-
-    // Create new user
-    const newUser = new User({
-      username,
-      email,
-      password: hashedPassword
+    // Exchange authorization code for access token
+    const { data } = await axios.post('https://oauth2.googleapis.com/token', {
+      client_id: CLIENT_ID,
+      client_secret: CLIENT_SECRET,
+      code,
+      redirect_uri: REDIRECT_URI,
+      grant_type: 'authorization_code',
     });
 
-    await newUser.save();
-    res.status(201).json({ status: true, message: 'Your Account is created successfully', data: newUser });
+    const { access_token, id_token } = data;
+
+    // Use access_token or id_token to fetch user profile
+    const { data: profile } = await axios.get('https://www.googleapis.com/oauth2/v1/userinfo', {
+      headers: { Authorization: `Bearer ${access_token}` },
+    });
+
+    // Code to handle user authentication and retrieval using the profile data
+    console.log(profile); // For now, just log the profile data
+
+    const existingUser = await User.findOne({ email:profile.email });
+    if (existingUser){
+      loginUser(req,res,profile)
+    }else{
+      signupUser(req,res,profile)
+    }
+    //res.send('Login successful!');
   } catch (error) {
-    console.error('Error creating user:', error);
-    res.status(500).json({ error: 'Server error' });
+    console.error('Error:', error.response.data.error);
+    res.redirect('/login');
   }
 })
 
-router.post('/login', async (req, res) => {
-  try {
-    const { username, password } = req.body;
-
-    if (!username || !password) {
-      return res.status(400).send({ status: true, message: "Mandatory parameter missing" });
-    }
-
-    // Find user in the database
-    const user = await User.findOne({ email: username });
-    if (!user) {
-      return res.status(404).json({ status: false, message: "Invalid username or password" });
-    }
-
-    if (!user.isVerified) {
-      return res.status(403).json({
-        status: false,
-        message: "User not verified, please contact contact@agino.tech"
-      });
-    }
-
-    // Compare the password
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (!isPasswordValid) {
-      return res.status(401).json({ status: false, message: "Invalid username or password" });
-    }
-
-    // Create JWT token
-    const token = jwt.sign({ userId: user.id }, 'Pri%40mus', { expiresIn: '3h' });
-
-    res.status(200).send({ status: true, token: token, message: "Welcome to AginoTech" });
-  } catch (err) {
-    res.status(500).send({ status: false, message: err.message });
-  }
-});
+router.post('/login', loginUser)
 
 router.post('/newMessage', authUser, async (req, res) => {
   try {
