@@ -117,13 +117,6 @@ async function signupUser (req, res) {
         return res.status(400).send({ status: false, message: "Email is required" });
       }
 
-      const existingUser = await User.findOne({ email });
-      if (existingUser) {
-        return res.status(400).json({ status: false, message: 'User already exists' });
-      }
-
-
-
       newUser = new User({
         username: name, // May come from the Google profile or be optional
         email,

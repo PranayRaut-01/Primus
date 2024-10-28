@@ -12,7 +12,11 @@ import { dbConfigStr } from './src/models/dbConfigStr.js'
 
 const app = express();
 
-app.use(cors());
+app.options('*', cors({
+    origin: 'https://app.agino.tech/', // Update to your frontend URL
+    credentials: true
+}));
+
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
