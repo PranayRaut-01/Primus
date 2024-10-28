@@ -48,7 +48,11 @@ router.get('/auth/google', (req, res) => {
   res.redirect(url);
 });
 
-router.get('/auth/google/callback', async (req, res) => {
+router.get('/auth/google/callback',(req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "https://app.agino.tech");
+  res.header("Access-Control-Allow-Credentials", "true");
+  next();
+}, async (req, res) => {
   const { code } = req.query;
   console.log("inside auth google callback",req.headers.origin)
 
