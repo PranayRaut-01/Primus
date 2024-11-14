@@ -11,14 +11,14 @@ dotenv.config();
 import { dbConfigStr } from './src/models/dbConfigStr.js'
 
 const app = express();
-app.use(cors());
+// app.use(cors());
 
-app.use(cors({
-    origin: 'https://app.agino.tech', // Update to your frontend URL
-    methods: 'GET,POST', // specify allowed methods
-    allowedHeaders: 'Content-Type,Authorization', // specify allowed headers
-    credentials: true, // enable cookies
-}));
+// app.use(cors({
+//     origin: 'https://app.agino.tech', // Update to your frontend URL
+//     methods: 'GET,POST', // specify allowed methods
+//     allowedHeaders: 'Content-Type,Authorization', // specify allowed headers
+//     credentials: true, // enable cookies
+// }));
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
