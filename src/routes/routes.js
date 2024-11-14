@@ -55,6 +55,7 @@ router.get('/auth/google/callback',(req, res, next) => {
 }, async (req, res) => {
   const { code } = req.query;
   console.log("inside auth google callback",req.headers.origin)
+  console.log("code ",code)
 
   try {
     // Exchange authorization code for access token
