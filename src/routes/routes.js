@@ -55,7 +55,8 @@ router.get('/auth/google', (req, res) => {
 
 router.get('/auth/google/callback', async (req, res) => {
   const { code } = req.query;
-
+  res.header("Access-Control-Allow-Origin", "https://app.agino.tech");
+  res.header("Access-Control-Allow-Credentials", "true");
   try {
     // Exchange authorization code for access token
     const { data } = await axios.post('https://oauth2.googleapis.com/token', {
