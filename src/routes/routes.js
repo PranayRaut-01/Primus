@@ -46,6 +46,7 @@ router.get('/auth/google', (req, res) => {
   console.log(process.env.CLIENT_ID)
   const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${process.env.CLIENT_ID}&redirect_uri=${process.env.REDIRECT_URI}&response_type=code&scope=profile email`;
   res.redirect(url);
+  console.log("**********Done with this")
 });
 
 router.get('/auth/google/callback',(req, res, next) => {
@@ -55,7 +56,6 @@ router.get('/auth/google/callback',(req, res, next) => {
 }, async (req, res) => {
   const { code } = req.query;
   console.log("inside auth google callback",req.headers.origin)
-  console.log("code ",code)
 
   try {
     // Exchange authorization code for access token
