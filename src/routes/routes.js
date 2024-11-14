@@ -40,21 +40,21 @@ router.get('/', async (req, res) => {
 
 router.post('/signup', signupUser)
 
+// router.get('/auth/google', (req, res) => {
+//   console.log("inside auth google")
+//   console.log("Origin:", req.headers.origin);
+//   console.log(process.env.CLIENT_ID)
+//   const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${process.env.CLIENT_ID}&redirect_uri=${process.env.REDIRECT_URI}&response_type=code&scope=profile email`;
+//   res.redirect(url);
+// });
+
 router.get('/auth/google', (req, res) => {
-  console.log("inside auth google")
-  console.log("Origin:", req.headers.origin);
-  console.log(process.env.CLIENT_ID)
   const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${process.env.CLIENT_ID}&redirect_uri=${process.env.REDIRECT_URI}&response_type=code&scope=profile email`;
-  res.redirect(url);
+  res.redirect(url); // Redirect directly from the server
 });
 
-router.get('/auth/google/callback',(req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "https://app.agino.tech");
-  res.header("Access-Control-Allow-Credentials", "true");
-  next();
-}, async (req, res) => {
+router.get('/auth/google/callback', async (req, res) => {
   const { code } = req.query;
-  console.log("inside auth google callback",req.headers.origin)
 
   try {
     // Exchange authorization code for access token
@@ -66,29 +66,69 @@ router.get('/auth/google/callback',(req, res, next) => {
       grant_type: 'authorization_code',
     });
 
-    const { access_token, id_token } = data;
+    const { access_token } = data;
 
-    // Use access_token or id_token to fetch user profile
+    // Use access_token to fetch user profile
     const { data: profile } = await axios.get('https://www.googleapis.com/oauth2/v1/userinfo', {
       headers: { Authorization: `Bearer ${access_token}` },
     });
 
-    // Code to handle user authentication and retrieval using the profile data
-    console.log(profile); // For now, just log the profile data
-    req.profile=profile
-
-    const existingUser = await User.findOne({ email:profile.email });
-    if (existingUser){
-      loginUser(req,res)
-    }else{
-      signupUser(req,res)
+    // Authenticate user based on profile data
+    const existingUser = await User.findOne({ email: profile.email });
+    if (existingUser) {
+      loginUser(req, res);
+    } else {
+      signupUser(req, res);
     }
-    //res.send('Login successful!');
   } catch (error) {
     console.error('Error:', error);
     res.redirect('/login');
   }
-})
+});
+
+
+
+// router.get('/auth/google/callback',(req, res, next) => {
+//   res.header("Access-Control-Allow-Origin", "https://app.agino.tech");
+//   res.header("Access-Control-Allow-Credentials", "true");
+//   next();
+// }, async (req, res) => {
+//   const { code } = req.query;
+//   console.log("inside auth google callback",req.headers.origin)
+
+//   try {
+//     // Exchange authorization code for access token
+//     const { data } = await axios.post('https://oauth2.googleapis.com/token', {
+//       client_id: process.env.CLIENT_ID,
+//       client_secret: process.env.CLIENT_SECRET,
+//       code,
+//       redirect_uri: process.env.REDIRECT_URI,
+//       grant_type: 'authorization_code',
+//     });
+
+//     const { access_token, id_token } = data;
+
+//     // Use access_token or id_token to fetch user profile
+//     const { data: profile } = await axios.get('https://www.googleapis.com/oauth2/v1/userinfo', {
+//       headers: { Authorization: `Bearer ${access_token}` },
+//     });
+
+//     // Code to handle user authentication and retrieval using the profile data
+//     console.log(profile); // For now, just log the profile data
+//     req.profile=profile
+
+//     const existingUser = await User.findOne({ email:profile.email });
+//     if (existingUser){
+//       loginUser(req,res)
+//     }else{
+//       signupUser(req,res)
+//     }
+//     //res.send('Login successful!');
+//   } catch (error) {
+//     console.error('Error:', error);
+//     res.redirect('/login');
+//   }
+// })
 
 router.post('/login', loginUser)
 

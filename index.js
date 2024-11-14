@@ -29,6 +29,7 @@ mongoose.connect(process.env.MONGODB_URI)
         console.log("MongoDb is connected")
     })
     .catch(err => console.log(err))
+    
 
 ///////////////// [ ROOT API ] /////////////////
 app.use('/', router);
