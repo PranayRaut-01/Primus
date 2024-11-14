@@ -15,7 +15,7 @@ import {
     ApplicationTelemetry,
     INativeBrokerPlugin,
     ClientAssertionCallback,
-} from "@azure/msal-common";
+} from "@azure/msal-common/node";
 import { HttpClient } from "../network/HttpClient.js";
 import http from "http";
 import https from "https";
@@ -104,6 +104,7 @@ export type NodeSystemOptions = {
     disableInternalRetries?: boolean;
 };
 
+/** @public */
 export type NodeTelemetryOptions = {
     application?: ApplicationTelemetry;
 };
@@ -126,12 +127,14 @@ export type Configuration = {
     telemetry?: NodeTelemetryOptions;
 };
 
+/** @public */
 export type ManagedIdentityIdParams = {
     userAssignedClientId?: string;
     userAssignedResourceId?: string;
     userAssignedObjectId?: string;
 };
 
+/** @public */
 export type ManagedIdentityConfiguration = {
     managedIdentityIdParams?: ManagedIdentityIdParams;
     system?: NodeSystemOptions;
@@ -242,6 +245,7 @@ export function buildAppConfiguration({
     };
 }
 
+/** @internal */
 export type ManagedIdentityNodeConfiguration = {
     managedIdentityId: ManagedIdentityId;
     system: Required<
