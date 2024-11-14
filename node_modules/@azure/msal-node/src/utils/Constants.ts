@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { HttpStatus } from "@azure/msal-common";
+import { HttpStatus } from "@azure/msal-common/node";
 
 // MSI Constants. Docs for MSI are available here https://docs.microsoft.com/azure/app-service/overview-managed-identity
 export const AUTHORIZATION_HEADER_NAME: string = "Authorization";
@@ -82,6 +82,7 @@ export type ProxyStatus = (typeof ProxyStatus)[keyof typeof ProxyStatus];
  * Constants used for region discovery
  */
 export const REGION_ENVIRONMENT_VARIABLE = "REGION_NAME";
+export const MSAL_FORCE_REGION = "MSAL_FORCE_REGION";
 
 /**
  * Constant used for PKCE

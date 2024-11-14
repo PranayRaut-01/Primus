@@ -51,6 +51,7 @@ router.get('/auth/google', (req, res) => {
 router.get('/auth/google/callback',(req, res, next) => {
   res.header("Access-Control-Allow-Origin", "https://app.agino.tech");
   res.header("Access-Control-Allow-Credentials", "true");
+  res.header('Access-Control-Allow-Methods', 'GET,POST');
   next();
 }, async (req, res) => {
   const { code } = req.query;
