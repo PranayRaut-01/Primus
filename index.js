@@ -15,7 +15,7 @@ app.use(cors());
 
 const allowedOrigins = [
     'https://app.agino.tech', // First allowed origin
-    "http://localhost"
+    "http://localhost:3000"
 ];
 
 app.use(cors({
