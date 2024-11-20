@@ -7,9 +7,14 @@ import { authUser } from '../middleware/auth.js';
 import { dbConfigStr } from '../models/dbConfigStr.js'
 import { askQuestion } from '../agents/agent.js'
 import { main } from '../report/dbDataToSheet.js'
-import { createDb, testConnection } from '../controller/createdb.js'
+import { createDb, testConnection, fetchDbDetails } from '../controller/createdb.js'
 import { saveDataFromExcleToDb } from '../controller/excleToDb.js'
 import { embedAndStoreSchema } from '../clientDB/pinecone.js'
+import { saveDashboardAnalyticsData,
+  getDashboardAnalyticsData,
+  updateDashboardAnalyticsData,
+  deleteDashboardAnalyticsData,
+  getDashboardAnalyticsDataById } from '../controller/dashboardAnalytics.js'
 import { Notes } from '../models/notes.js'
 import { Feedback } from '../models/Feedback.js';
 import multer from 'multer';
@@ -111,16 +116,9 @@ router.post('/newMessage', authUser, async (req, res) => {
     const chat_history = await ChatLog.find({ sessionId })
     console.log("request message : ", message)
 
-    const dbDetail = await DatabaseCredentials.findOne({ userId: userId, database: database }).lean();
-    dbDetail.config = {
-      user: dbDetail.username,
-      password: dbDetail.password,
-      database: dbDetail.database
-    }
-    if (dbDetail.host) {
-      dbDetail.config.host = dbDetail.host
-    } else {
-      dbDetail.config.server = dbDetail.server
+    const dbDetail = await fetchDbDetails(userId,database)
+    if(!dbDetail.config){
+      res.status(500).send({ error: 'Server error', message: dbDetail.message });
     }
     const llm_model = {
       config: {
@@ -690,8 +688,19 @@ router.get('/api/admin/feedback', authUser, async (req, res) => {
 })
 
 
+//****************************************//
+//***Endpoints for Analytics Dashboard****//
+//***************************************//
 
+router.post('/dashboardAnalytics', authUser, saveDashboardAnalyticsData)
 
+router.get('/dashboardAnalytics', authUser, getDashboardAnalyticsData)
+
+router.get('/dashboardAnalytics/:id', authUser, getDashboardAnalyticsDataById)
+
+router.put('/dashboardAnalytics/:id', authUser, updateDashboardAnalyticsData)
+
+router.delete('/dashboardAnalytics/:id', authUser, deleteDashboardAnalyticsData)
 
 
 export { router };

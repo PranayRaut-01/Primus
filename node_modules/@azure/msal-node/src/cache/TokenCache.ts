@@ -11,7 +11,7 @@ import {
     ISerializableTokenCache,
     ICachePlugin,
     TokenCacheContext,
-} from "@azure/msal-common";
+} from "@azure/msal-common/node";
 import {
     InMemoryCache,
     JsonCache,
@@ -124,7 +124,7 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
         let cacheContext;
         try {
             if (this.persistence) {
-                cacheContext = new TokenCacheContext(this, true);
+                cacheContext = new TokenCacheContext(this, false);
                 await this.persistence.beforeCacheAccess(cacheContext);
             }
             return this.storage.getAllAccounts();

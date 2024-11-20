@@ -37,49 +37,44 @@ import {
     buildAccountToCache,
     InProgressPerformanceEvent,
     ServerTelemetryManager,
-} from "@azure/msal-common";
-import { BaseInteractionClient } from "./BaseInteractionClient";
-import { BrowserConfiguration } from "../config/Configuration";
-import { BrowserCacheManager } from "../cache/BrowserCacheManager";
-import { EventHandler } from "../event/EventHandler";
-import { PopupRequest } from "../request/PopupRequest";
-import { SilentRequest } from "../request/SilentRequest";
-import { SsoSilentRequest } from "../request/SsoSilentRequest";
-import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler";
+} from "@azure/msal-common/browser";
+import { BaseInteractionClient } from "./BaseInteractionClient.js";
+import { BrowserConfiguration } from "../config/Configuration.js";
+import { BrowserCacheManager } from "../cache/BrowserCacheManager.js";
+import { EventHandler } from "../event/EventHandler.js";
+import { PopupRequest } from "../request/PopupRequest.js";
+import { SilentRequest } from "../request/SilentRequest.js";
+import { SsoSilentRequest } from "../request/SsoSilentRequest.js";
+import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler.js";
 import {
     NativeExtensionMethod,
     ApiId,
     TemporaryCacheKeys,
     NativeConstants,
     BrowserConstants,
-} from "../utils/BrowserConstants";
+} from "../utils/BrowserConstants.js";
 import {
     NativeExtensionRequestBody,
     NativeTokenRequest,
-} from "../broker/nativeBroker/NativeRequest";
-import { MATS, NativeResponse } from "../broker/nativeBroker/NativeResponse";
+} from "../broker/nativeBroker/NativeRequest.js";
+import { MATS, NativeResponse } from "../broker/nativeBroker/NativeResponse.js";
 import {
     NativeAuthError,
     NativeAuthErrorCodes,
     createNativeAuthError,
     isFatalNativeAuthError,
-} from "../error/NativeAuthError";
-import { RedirectRequest } from "../request/RedirectRequest";
-import { NavigationOptions } from "../navigation/NavigationOptions";
-import { INavigationClient } from "../navigation/INavigationClient";
+} from "../error/NativeAuthError.js";
+import { RedirectRequest } from "../request/RedirectRequest.js";
+import { NavigationOptions } from "../navigation/NavigationOptions.js";
+import { INavigationClient } from "../navigation/INavigationClient.js";
 import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
-} from "../error/BrowserAuthError";
-import { SilentCacheClient } from "./SilentCacheClient";
-import { AuthenticationResult } from "../response/AuthenticationResult";
-import { base64Decode } from "../encode/Base64Decode";
-import { version } from "../packageMetadata";
-
-const BrokerServerParamKeys = {
-    BROKER_CLIENT_ID: "brk_client_id",
-    BROKER_REDIRECT_URI: "brk_redirect_uri",
-};
+} from "../error/BrowserAuthError.js";
+import { SilentCacheClient } from "./SilentCacheClient.js";
+import { AuthenticationResult } from "../response/AuthenticationResult.js";
+import { base64Decode } from "../encode/Base64Decode.js";
+import { version } from "../packageMetadata.js";
 
 export class NativeInteractionClient extends BaseInteractionClient {
     protected apiId: ApiId;
@@ -505,7 +500,9 @@ export class NativeInteractionClient extends BaseInteractionClient {
         }
 
         // Get the preferred_cache domain for the given authority
-        const authority = await this.getDiscoveredAuthority(request.authority);
+        const authority = await this.getDiscoveredAuthority({
+            requestAuthority: request.authority,
+        });
 
         const baseAccount = buildAccountToCache(
             this.browserStorage,
@@ -905,18 +902,19 @@ export class NativeInteractionClient extends BaseInteractionClient {
             "NativeInteractionClient - initializeNativeRequest called"
         );
 
-        const authority = request.authority || this.config.auth.authority;
+        const requestAuthority =
+            request.authority || this.config.auth.authority;
 
         if (request.account) {
             // validate authority
-            await this.getDiscoveredAuthority(
-                authority,
-                request.azureCloudOptions,
-                request.account
-            );
+            await this.getDiscoveredAuthority({
+                requestAuthority,
+                requestAzureCloudOptions: request.azureCloudOptions,
+                account: request.account,
+            });
         }
 
-        const canonicalAuthority = new UrlString(authority);
+        const canonicalAuthority = new UrlString(requestAuthority);
         canonicalAuthority.validateAsUri();
 
         // scopes are expected to be received by the native broker as "scope" and will be added to the request below. Other properties that should be dropped from the request to the native broker can be included in the object destructuring here.
@@ -1041,31 +1039,46 @@ export class NativeInteractionClient extends BaseInteractionClient {
      * @private
      */
     private handleExtraBrokerParams(request: NativeTokenRequest): void {
-        if (!request.extraParameters) {
+        const hasExtraBrokerParams =
+            request.extraParameters &&
+            request.extraParameters.hasOwnProperty(
+                AADServerParamKeys.BROKER_CLIENT_ID
+            ) &&
+            request.extraParameters.hasOwnProperty(
+                AADServerParamKeys.BROKER_REDIRECT_URI
+            ) &&
+            request.extraParameters.hasOwnProperty(
+                AADServerParamKeys.CLIENT_ID
+            );
+
+        if (!request.embeddedClientId && !hasExtraBrokerParams) {
             return;
         }
 
-        if (
-            request.extraParameters.hasOwnProperty(
-                BrokerServerParamKeys.BROKER_CLIENT_ID
-            ) &&
-            request.extraParameters.hasOwnProperty(
-                BrokerServerParamKeys.BROKER_REDIRECT_URI
-            ) &&
-            request.extraParameters.hasOwnProperty(AADServerParamKeys.CLIENT_ID)
-        ) {
-            const child_client_id =
+        let child_client_id: string = "";
+        const child_redirect_uri = request.redirectUri;
+
+        if (request.embeddedClientId) {
+            request.redirectUri = this.config.auth.redirectUri;
+            child_client_id = request.embeddedClientId;
+        } else if (request.extraParameters) {
+            request.redirectUri =
+                request.extraParameters[AADServerParamKeys.BROKER_REDIRECT_URI];
+            child_client_id =
                 request.extraParameters[AADServerParamKeys.CLIENT_ID];
-            const child_redirect_uri = request.redirectUri;
-            const brk_redirect_uri =
-                request.extraParameters[
-                    BrokerServerParamKeys.BROKER_REDIRECT_URI
-                ];
-            request.extraParameters = {
-                child_client_id,
-                child_redirect_uri,
-            };
-            request.redirectUri = brk_redirect_uri;
         }
+
+        request.extraParameters = {
+            child_client_id,
+            child_redirect_uri,
+        };
+
+        this.performanceClient?.addFields(
+            {
+                embeddedClientId: child_client_id,
+                embeddedRedirectUri: child_redirect_uri,
+            },
+            request.correlationId
+        );
     }
 }
