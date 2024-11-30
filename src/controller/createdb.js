@@ -1,5 +1,6 @@
 import mysql from 'mysql2/promise';
 import { fetchSchemaFromDb } from "../clientDB/fetchDbInfo.js";
+import { DatabaseCredentials } from '../models/dbCreds.js'
 
 async function createDb(config) {
     try {
@@ -68,8 +69,37 @@ async function testConnection(dbDetail) {
     }
 }
 
+async function fetchDbDetails(userId,database) {
+    try {
+        const dbDetail = await DatabaseCredentials.findOne({ userId: userId, database: database }).lean();
+        dbDetail.config = {
+          user: dbDetail.username,
+          password: dbDetail.password,
+          database: dbDetail.database
+        }
+        dbDetail.config = {
+            user: dbDetail.username,
+            password: dbDetail.password,
+            database: dbDetail.database
+        }
+        if (dbDetail.host) {
+            dbDetail.config.host = dbDetail.host
+        } else {
+            dbDetail.config.server = dbDetail.server
+        }
+          return dbDetail
+    } catch (error) {
+        console.error('Connection Error:', error.message);
+        return {
+            status: false,
+            message: error.message
+        };
+    }
+}
+
 
 export {
     createDb,
-    testConnection
+    testConnection,
+    fetchDbDetails
 }

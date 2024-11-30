@@ -24,7 +24,7 @@ import {
     ServerAuthorizationCodeResponse,
     AADServerParamKeys,
     ServerTelemetryManager,
-} from "@azure/msal-common";
+} from "@azure/msal-common/node";
 import { Configuration } from "../config/Configuration.js";
 import { ClientApplication } from "./ClientApplication.js";
 import { IPublicClientApplication } from "./IPublicClientApplication.js";
@@ -38,7 +38,7 @@ import { SilentFlowRequest } from "../request/SilentFlowRequest.js";
 import { SignOutRequest } from "../request/SignOutRequest.js";
 import { ILoopbackClient } from "../network/ILoopbackClient.js";
 import { DeviceCodeClient } from "./DeviceCodeClient.js";
-import { version } from "../packageMetadata";
+import { version } from "../packageMetadata.js";
 
 /**
  * This class is to be used to acquire tokens for public client applications (desktop, mobile). Public client applications
@@ -116,6 +116,7 @@ export class PublicClientApplication
             const deviceCodeConfig = await this.buildOauthClientConfiguration(
                 validRequest.authority,
                 validRequest.correlationId,
+                "",
                 serverTelemetryManager,
                 undefined,
                 request.azureCloudOptions
@@ -238,7 +239,7 @@ export class PublicClientApplication
 
     /**
      * Returns a token retrieved either from the cache or by exchanging the refresh token for a fresh access token. If brokering is enabled the token request will be serviced by the broker.
-     * @param request
+     * @param request - developer provided SilentFlowRequest
      * @returns
      */
     async acquireTokenSilent(
@@ -271,7 +272,7 @@ export class PublicClientApplication
 
     /**
      * Removes cache artifacts associated with the given account
-     * @param request
+     * @param request - developer provided SignOutRequest
      * @returns
      */
     async signOut(request: SignOutRequest): Promise<void> {
@@ -307,7 +308,7 @@ export class PublicClientApplication
 
     /**
      * Attempts to retrieve the redirectUri from the loopback server. If the loopback server does not start listening for requests within the timeout this will throw.
-     * @param loopbackClient
+     * @param loopbackClient - developer provided custom loopback server implementation
      * @returns
      */
     private async waitForRedirectUri(

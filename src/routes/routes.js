@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import fs from 'fs';
 import { Session } from '../models/session.js'
 import { DatabaseCredentials } from '../models/dbCreds.js'
 import { User } from '../models/user.js'
@@ -7,9 +8,14 @@ import { authUser } from '../middleware/auth.js';
 import { dbConfigStr } from '../models/dbConfigStr.js'
 import { askQuestion } from '../agents/agent.js'
 import { main } from '../report/dbDataToSheet.js'
-import { createDb, testConnection } from '../controller/createdb.js'
+import { createDb, testConnection, fetchDbDetails } from '../controller/createdb.js'
 import { saveDataFromExcleToDb } from '../controller/excleToDb.js'
 import { embedAndStoreSchema } from '../clientDB/pinecone.js'
+import { saveDashboardAnalyticsData,
+  getDashboardAnalyticsData,
+  updateDashboardAnalyticsData,
+  deleteDashboardAnalyticsData,
+  getDashboardAnalyticsDataById } from '../controller/dashboardAnalytics.js'
 import { Notes } from '../models/notes.js'
 import { Feedback } from '../models/Feedback.js';
 import multer from 'multer';
@@ -22,6 +28,7 @@ import { dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { uploadToS3 } from '../controller/uploadToS3.js';
 import { loginUser ,signupUser } from '../controller/userController.js';
+import {sendMail} from '../controller/mailFunction.js'
 import axios from 'axios';
 const ObjectId = mongoose.Types.ObjectId;
 dotenv.config();
@@ -39,6 +46,37 @@ router.get('/', async (req, res) => {
 })
 
 router.post('/signup', signupUser)
+router.post('/login', loginUser)
+
+router.post('/sendmail',upload.single('file') , async (req, res) => {
+  const { to, subject, text } = req.body;
+
+  
+
+  try {
+    const recipients = Array.isArray(to) ? to.join(',') : to;
+    const attachments = [
+      {
+        filename: req.file.originalname, // Use the original file name
+        path: req.file.path,             // Path to the file saved by multer
+      },
+    ];
+    console.log(to ,recipients, subject, text, attachments)
+    const result = await sendMail({ to: recipients, subject, text, attachments });
+
+    
+
+// After sending the email
+fs.unlink(req.file.path, (err) => {
+  if (err) console.error('Error deleting file:', err);
+  else console.log('Temporary file deleted.');
+});
+
+    res.status(200).send(result);
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+});
 
 router.get('/auth/google', (req, res) => {
   console.log("inside auth google")
@@ -91,8 +129,6 @@ router.get('/auth/google/callback',(req, res, next) => {
   }
 })
 
-router.post('/login', loginUser)
-
 router.post('/newMessage', authUser, async (req, res) => {
   try {
     const { message, sessionId, database, psid } = req.body;
@@ -111,16 +147,9 @@ router.post('/newMessage', authUser, async (req, res) => {
     const chat_history = await ChatLog.find({ sessionId })
     console.log("request message : ", message)
 
-    const dbDetail = await DatabaseCredentials.findOne({ userId: userId, database: database }).lean();
-    dbDetail.config = {
-      user: dbDetail.username,
-      password: dbDetail.password,
-      database: dbDetail.database
-    }
-    if (dbDetail.host) {
-      dbDetail.config.host = dbDetail.host
-    } else {
-      dbDetail.config.server = dbDetail.server
+    const dbDetail = await fetchDbDetails(userId,database)
+    if(!dbDetail.config){
+      res.status(500).send({ error: 'Server error', message: dbDetail.message });
     }
     const llm_model = {
       config: {
@@ -690,8 +719,19 @@ router.get('/api/admin/feedback', authUser, async (req, res) => {
 })
 
 
+//****************************************//
+//***Endpoints for Analytics Dashboard****//
+//***************************************//
 
+router.post('/dashboardAnalytics', authUser, saveDashboardAnalyticsData)
 
+router.get('/dashboardAnalytics', authUser, getDashboardAnalyticsData)
+
+router.get('/dashboardAnalytics/:id', authUser, getDashboardAnalyticsDataById)
+
+router.put('/dashboardAnalytics/:id', authUser, updateDashboardAnalyticsData)
+
+router.delete('/dashboardAnalytics/:id', authUser, deleteDashboardAnalyticsData)
 
 
 export { router };

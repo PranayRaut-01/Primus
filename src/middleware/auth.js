@@ -18,6 +18,7 @@ export const authUser = (req, res, next) => {
         });
 
     } catch (err) {
+        console.log(err)
         res.status(500).send({ status: false, message: err.message });
     }
 };
