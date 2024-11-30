@@ -77,6 +77,8 @@ async function loginUser(req, res) {
 
       // Authenticate user (Google SSO doesn't require password)
       token = await authenticateUser(user);
+
+      return res.redirect(`https://app.agino.tech/home?token=${token}`)
     } else {
       // Traditional login flow (email/password)
       const { username: email, password } = req.body;
@@ -123,6 +125,9 @@ async function signupUser (req, res) {
         googleId, // Store Google ID for future authentication
         isVerified: true // Google SSO users are usually considered verified
       });
+
+      return loginUser(req, res)
+
     } else {
       const { username, email, password } = req.body;
 

@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import fs from 'fs';
 import { Session } from '../models/session.js'
 import { DatabaseCredentials } from '../models/dbCreds.js'
 import { User } from '../models/user.js'
@@ -27,6 +28,7 @@ import { dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { uploadToS3 } from '../controller/uploadToS3.js';
 import { loginUser ,signupUser } from '../controller/userController.js';
+import {sendMail} from '../controller/mailFunction.js'
 import axios from 'axios';
 const ObjectId = mongoose.Types.ObjectId;
 dotenv.config();
@@ -44,6 +46,37 @@ router.get('/', async (req, res) => {
 })
 
 router.post('/signup', signupUser)
+router.post('/login', loginUser)
+
+router.post('/sendmail',upload.single('file') , async (req, res) => {
+  const { to, subject, text } = req.body;
+
+  
+
+  try {
+    const recipients = Array.isArray(to) ? to.join(',') : to;
+    const attachments = [
+      {
+        filename: req.file.originalname, // Use the original file name
+        path: req.file.path,             // Path to the file saved by multer
+      },
+    ];
+    console.log(to ,recipients, subject, text, attachments)
+    const result = await sendMail({ to: recipients, subject, text, attachments });
+
+    
+
+// After sending the email
+fs.unlink(req.file.path, (err) => {
+  if (err) console.error('Error deleting file:', err);
+  else console.log('Temporary file deleted.');
+});
+
+    res.status(200).send(result);
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+});
 
 router.get('/auth/google', (req, res) => {
   console.log("inside auth google")
@@ -51,6 +84,7 @@ router.get('/auth/google', (req, res) => {
   console.log(process.env.CLIENT_ID)
   const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${process.env.CLIENT_ID}&redirect_uri=${process.env.REDIRECT_URI}&response_type=code&scope=profile email`;
   res.redirect(url);
+  console.log("**********Done with this")
 });
 
 router.get('/auth/google/callback',(req, res, next) => {
@@ -60,7 +94,6 @@ router.get('/auth/google/callback',(req, res, next) => {
 }, async (req, res) => {
   const { code } = req.query;
   console.log("inside auth google callback",req.headers.origin)
-  console.log("code ",code)
 
   try {
     // Exchange authorization code for access token
@@ -95,8 +128,6 @@ router.get('/auth/google/callback',(req, res, next) => {
     res.redirect('/login');
   }
 })
-
-router.post('/login', loginUser)
 
 router.post('/newMessage', authUser, async (req, res) => {
   try {

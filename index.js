@@ -15,14 +15,15 @@ app.use(cors());
 
 const allowedOrigins = [
     'https://app.agino.tech', // First allowed origin
-    "https://beta.agino.tech", //Second allowed origin
-    "http://localhost"
+    "https://beta.agino.tech"
 ];
 
 app.use(cors({
     origin: (origin, callback) => {
         // If the origin is not in the allowedOrigins array or it's undefined (for non-browser requests), block the request
-        if (allowedOrigins.includes(origin) || !origin) {
+        if ( !origin || // Allow non-browser requests (like Postman)
+            allowedOrigins.includes(origin) || // Allow explicitly allowed origins
+            /^http:\/\/localhost(:\d+)?$/.test(origin)) {
             callback(null, true); // Allow the request
         } else {
             callback(new Error('Not allowed by CORS'), false); // Block the request
