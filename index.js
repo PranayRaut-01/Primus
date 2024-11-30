@@ -15,8 +15,8 @@ app.use(cors());
 
 const allowedOrigins = [
     'https://app.agino.tech', // First allowed origin
-    "http://localhost",
-    "https://beta.agino.tech"
+    "https://beta.agino.tech", //Second allowed origin
+    "http://localhost"
 ];
 
 app.use(cors({
