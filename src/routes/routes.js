@@ -72,7 +72,7 @@ fs.unlink(req.file.path, (err) => {
   else console.log('Temporary file deleted.');
 });
 
-    res.status(200).send(result);
+    res.status(200).send({ status: true, message: "Email Sent. Please check your inbox" });
   } catch (error) {
     res.status(500).send(error.message);
   }
