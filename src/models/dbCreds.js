@@ -35,7 +35,7 @@ const databaseCredentialsSchema = new Schema({
     type:Object,
     default:{}
   },
-  aliasName: {
+  tableName: {
     type: String,
     required: true
   },

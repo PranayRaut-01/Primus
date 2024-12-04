@@ -14,7 +14,7 @@ async function saveDashboardAnalyticsData(req, res) {
             return res.status(400).json({ status: false, message: 'Mandatory parameters missing' });
         }
 
-        const dbDetail = await fetchDbDetails(userId,database)
+        const dbDetail = await fetchDbDetails({userId:userId,database:database})
         if(!dbDetail.config){
           res.status(500).send({ error: 'Server error', message: dbDetail.message });
         }
@@ -39,7 +39,7 @@ async function getDashboardAnalyticsData(req,res) {
         const userId = new ObjectId(req.token)
         const { database } = req.body;
 
-        const dbDetail = await fetchDbDetails(userId,database)
+        const dbDetail = await fetchDbDetails({userId:userId,database:database})
         if(!dbDetail.config){
           res.status(500).send({ error: 'Server error', message: dbDetail.message });
         }
@@ -66,11 +66,10 @@ async function getDashboardAnalyticsData(req,res) {
 
 async function getDashboardAnalyticsDataById(req,res) {
     try {
-        const { id } = req.params;
+        const { id,database } = req.query;
         const userId = new ObjectId(req.token)
-        const { database } = req.body;
 
-        const dbDetail = await fetchDbDetails(userId,database)
+        const dbDetail = await fetchDbDetails({userId:userId,database:database})
         if(!dbDetail.config){
           res.status(500).send({ error: 'Server error', message: dbDetail.message });
         }
@@ -94,7 +93,7 @@ async function updateDashboardAnalyticsData(req,res) {
         const userId = new ObjectId(req.token)
         const { database, title, query } = req.body;
 
-        const dbDetail = await fetchDbDetails(userId,database)
+        const dbDetail = await fetchDbDetails({userId:userId,database:database})
         if(!dbDetail.config){
           res.status(500).send({ error: 'Server error', message: dbDetail.message });
         }

@@ -1,6 +1,8 @@
 import mysql from 'mysql2/promise';
 import { fetchSchemaFromDb } from "../clientDB/fetchDbInfo.js";
 import { DatabaseCredentials } from '../models/dbCreds.js'
+import * as dotenv from "dotenv";
+dotenv.config();
 
 async function createDb(config) {
     try {
@@ -69,21 +71,18 @@ async function testConnection(dbDetail) {
     }
 }
 
-async function fetchDbDetails(userId,database) {
+async function fetchDbDetails(obj) {
     try {
-        const dbDetail = await DatabaseCredentials.findOne({ userId: userId, database: database }).lean();
+    
+        const dbDetail= await DatabaseCredentials.findOne(obj)
+        
         dbDetail.config = {
-          user: dbDetail.username,
-          password: dbDetail.password,
+          user: process.env.USER_NAME,
+          password: process.env.PASSWORD,
           database: dbDetail.database
         }
-        dbDetail.config = {
-            user: dbDetail.username,
-            password: dbDetail.password,
-            database: dbDetail.database
-        }
         if (dbDetail.host) {
-            dbDetail.config.host = dbDetail.host
+            dbDetail.config.host = process.env.SERVER
         } else {
             dbDetail.config.server = dbDetail.server
         }

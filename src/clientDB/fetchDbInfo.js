@@ -5,7 +5,10 @@ import { queryExecuter } from "./connectClientDb.js"
 async function fetchMSSQLTableSchemas(dbDetail) {
   try {
     const query = `
-      SELECT TABLE_NAME, COLUMN_NAME, DATA_TYPE
+      SELECT TABLE_NAME AS table_name,
+       COLUMN_NAME AS column_name,
+       DATA_TYPE AS data_type,
+       COLUMN_KEY AS column_key,
       FROM INFORMATION_SCHEMA.COLUMNS
       ORDER BY TABLE_NAME, ORDINAL_POSITION`;
 
@@ -21,7 +24,10 @@ async function fetchMSSQLTableSchemas(dbDetail) {
 async function fetchPGSQLTableSchemas(dbDetail) {
   try {
     const query = `
-      SELECT table_name, column_name, data_type
+      SELECT TABLE_NAME AS table_name,
+       COLUMN_NAME AS column_name,
+       DATA_TYPE AS data_type,
+       COLUMN_KEY AS column_key,
       FROM information_schema.columns
       WHERE table_schema = 'public'
       ORDER BY table_name, ordinal_position
@@ -71,10 +77,7 @@ async function fetchMySQLTableSchemas(dbDetail) {
     SELECT TABLE_NAME AS table_name,
        COLUMN_NAME AS column_name,
        DATA_TYPE AS data_type,
-       IS_NULLABLE AS is_nullable,
-       COLUMN_DEFAULT AS column_default,
        COLUMN_KEY AS column_key,
-       EXTRA AS extra
 FROM information_schema.COLUMNS
 WHERE TABLE_SCHEMA = DATABASE()
 ORDER BY TABLE_NAME, ORDINAL_POSITION;

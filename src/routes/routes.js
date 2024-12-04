@@ -8,8 +8,8 @@ import { authUser } from '../middleware/auth.js';
 import { dbConfigStr } from '../models/dbConfigStr.js'
 import { askQuestion } from '../agents/agent.js'
 import { main } from '../report/dbDataToSheet.js'
-import { createDb, testConnection, fetchDbDetails } from '../controller/createdb.js'
-import { saveDataFromExcleToDb } from '../controller/excleToDb.js'
+import { testConnection, fetchDbDetails } from '../controller/createdb.js'
+import { sheetUpload } from '../controller/excleToDb.js'
 import { embedAndStoreSchema } from '../clientDB/pinecone.js'
 import { saveDashboardAnalyticsData,
   getDashboardAnalyticsData,
@@ -19,7 +19,6 @@ import { saveDashboardAnalyticsData,
 import { Notes } from '../models/notes.js'
 import { Feedback } from '../models/Feedback.js';
 import multer from 'multer';
-import bcrypt from 'bcryptjs';
 import path from 'path';
 import jwt from 'jsonwebtoken';
 import * as dotenv from "dotenv";
@@ -147,7 +146,7 @@ router.post('/newMessage', authUser, async (req, res) => {
     const chat_history = await ChatLog.find({ sessionId })
     console.log("request message : ", message)
 
-    const dbDetail = await fetchDbDetails(userId,database)
+    const dbDetail = await fetchDbDetails({userId:userId,database:database})
     if(!dbDetail.config){
       res.status(500).send({ error: 'Server error', message: dbDetail.message });
     }
@@ -322,63 +321,22 @@ router.get('/connecteddatabases', authUser, async (req, res) => {
   }
 });
 
-router.post('/uploadSheet', authUser, upload.single('file'), async (req, res) => {
+router.get('/existingSheets', authUser, async (req, res) => {
   try {
-    if (!req.file) {
-      throw new Error('No file uploaded. Please upload an Excel file.');
-    }
     const userId = new ObjectId(req.token)
-    // ?req.token:{userId:"66cf4e05554955c52c266abd"}
 
-    const fileExtension = path.extname(req.file.originalname);
-    if (fileExtension !== '.xlsx' && fileExtension !== '.xls') {
-      throw new Error('Invalid file format. Only Excel files are allowed.');
-    }
-    let fileName = path.basename(req.file.originalname, path.extname(req.file.originalname));
-
-    // Trim the file name to 15 characters and add "..." if it's longer than 15
-    if (fileName.length > 15) {
-      fileName = fileName.slice(0, 15) + '...';
-    }
-
-    let dbData = await DatabaseCredentials.findOne({ userId: userId, database: userId })
-
-    if (!dbData) {
-      dbData = await DatabaseCredentials.findOne({ _id: new ObjectId(process.env.DB_ID) })
-      const config = {
-        userId: userId, dbtype: dbData.dbtype, database: userId, username: dbData.username, password: dbData.password, host: dbData.host, aliasName: fileName
-      }
-      const dbCreation = await createDb(config)
-      if (dbCreation) {
-        const document = new DatabaseCredentials(config);
-        await document.save();
-      }
-
-      dbData = await DatabaseCredentials.findOne({ userId: userId, database: userId })
-      if (!dbData) {
-        console.log("some error occured")
-      }
-    }
-
-    let dbDetail = {
-      config: {
-        host: dbData.host,
-        user: dbData.username,
-        password: dbData.password,
-        database: dbData.database
-      },
-      dbtype: dbData.dbtype,
-    }
-
-    const result = await saveDataFromExcleToDb(req, res, dbDetail)
-    const data = await DatabaseCredentials.updateOne({ userId: userId, database: userId }, { $set: { schema: result, aliasName: fileName } })
-
-    res.status(200).send({ status: true, message: "sheet uploaded successfully", data: data });
+    const tables = await DatabaseCredentials.find({ userId: userId}).select({ tableName: 1, database: 1, schema:1 });
+    
+    res.status(200).send({ status: true, message: "Existing sheets fetched successfully.", data: tables });
   } catch (err) {
-    console.log(err)
+    console.error(err);
     res.status(500).send({ status: false, message: err.message });
   }
 });
+
+
+router.post('/uploadSheet', authUser, upload.single('file'),sheetUpload );
+
 
 router.get('/chatHistory', authUser, async (req, res) => {
   try {
@@ -407,7 +365,7 @@ router.get('/chatlogBySessionId', authUser, async (req, res) => {
   try {
     const sessionId = new ObjectId(req.query.sessionId)
 
-    const chatHistory = await ChatLog.find({ sessionId }).select({ message: 1, context: 1 }).lean();
+    const chatHistory = await ChatLog.find({ sessionId }).select({ message: 1, context: 1 })
     return res.status(200).json({ status: true, data: chatHistory })
   } catch (error) {
     console.error(error)
@@ -727,7 +685,7 @@ router.post('/dashboardAnalytics', authUser, saveDashboardAnalyticsData)
 
 router.get('/dashboardAnalytics', authUser, getDashboardAnalyticsData)
 
-router.get('/dashboardAnalytics/:id', authUser, getDashboardAnalyticsDataById)
+router.get('/dashboardAnalytics', authUser, getDashboardAnalyticsDataById)
 
 router.put('/dashboardAnalytics/:id', authUser, updateDashboardAnalyticsData)
 
