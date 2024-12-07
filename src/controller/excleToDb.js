@@ -85,8 +85,12 @@ async function sheetUpload(req, res) {
                 }
             }
 
-            await saveDataFromExcelToDb(req, res, sheetData, dbDetail);
-            return res.status(200).send({ status: true, message: "Data appended successfully to the existing table." });
+            const result = await saveDataFromExcelToDb(req, res, sheetData, dbDetail);
+            if(result.status){
+                return res.status(200).send({ status: true, message: "Data appended successfully to the existing table." });
+            }else{
+                res.status(401).send(result);
+            }
         } else {
             throw new Error('Invalid action. Use "new" or "append".');
         }
@@ -193,10 +197,10 @@ async function saveDataFromExcelToDb(req, res, sheetData, dbDetail) {
         // Clean up the uploaded file
         if (dbDetail.filePath) fs.unlinkSync(dbDetail.filePath);
 
-        return true
+        return { status: true}
     } catch (err) {
         console.error(err);
-        res.status(500).send({ status: false, message: err.message });
+        return { status: false, message: err.message }
     }
 }
 
