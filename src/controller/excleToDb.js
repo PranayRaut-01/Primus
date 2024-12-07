@@ -23,7 +23,7 @@ async function sheetUpload(req, res) {
         const userId = new ObjectId(req.token);
         const fileExtension = path.extname(req.file.originalname).toLowerCase();
         if (!['.xlsx', '.xls', '.csv'].includes(fileExtension)) {
-            throw new Error('Invalid file format. Only Excel or CSV files are allowed.');
+            return res.status(400).send({ status: false, message: "Invalid file format. Only Excel or CSV files are allowed." });
         }
         req.body.tableName.toLowerCase()
         const { action, tableName, database } = req.body; // `action` can be "new" or "append"
@@ -32,7 +32,7 @@ async function sheetUpload(req, res) {
         const workbook = xlsx.readFile(filePath);
         const sheetName = workbook.SheetNames[0];
         const sheetData = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName], { header: 1 });
-        const [headers, ...rows] = sheetData;
+        let [headers, ...rows] = sheetData;
 
         if (action === 'new') {
             // Handle new sheet upload
@@ -58,7 +58,7 @@ async function sheetUpload(req, res) {
             await document.save();
             const dbDetail = await fetchDbDetails({_id:document._id})
             if (!dbDetail.config) {
-                return res.status(500).send({ error: 'Server error', message: dbDetail.message });
+                return res.status(500).send({status:false, error: 'Server error', message: dbDetail.message });
             }
             await saveDataFromExcelToDb(req, res, sheetData, dbDetail);
             return res.status(200).send({ status: true, message: "New sheet uploaded and table created successfully." });
@@ -66,7 +66,7 @@ async function sheetUpload(req, res) {
 
             const dbDetail = await fetchDbDetails({userId:userId,tableName:tableName})
             if (!dbDetail.config) {
-                return res.status(500).send({ error: 'Server error', message: dbDetail.message });
+                return res.status(500).send({status: false,  error: 'Server error', message: dbDetail.message });
             }
             // Handle appending data to existing table
             if (!tableName) throw new Error('Table name is required for appending data.');
@@ -74,14 +74,14 @@ async function sheetUpload(req, res) {
             const existingSchema = dbDetail.schema
 
             if(headers.length !== existingSchema.length){
-                throw new Error('the uploaded sheet formated is not matched with existing formate');
+                return res.status(400).send({ status: false, message: "The uploaded sheet formated is not matched with existing formate" });
             }
 
             headers = await Promise.all(headers.map(index => sanitizeColumnName(index)));
 
             for(let i=0;i<existingSchema.length;i++){
                 if(existingSchema[i]['column_name'] !== headers[i].toLowerCase()){
-                throw new Error('the uploaded sheet columns sequence is incorrect, Please arrange it in correct sequence');
+                return res.status(400).send({ status: false, message: "The uploaded sheet columns sequence is incorrect, Please arrange it in correct sequence" });
                 }
             }
 
@@ -201,10 +201,6 @@ async function saveDataFromExcelToDb(req, res, sheetData, dbDetail) {
 }
 
 async function dropTableAndDeleteDbDetail(req, res) {
-    if (!dbDetail.tableName) {
-        throw new Error('Invalid dbDetail provided. Table name and config are required.');
-    }
-
     try {
         const userId = new ObjectId(req.token);
         const tableName = req.body.tableName.toLowerCase();
@@ -227,12 +223,16 @@ async function dropTableAndDeleteDbDetail(req, res) {
         const deleteResult = await DatabaseCredentials.deleteOne({ _id: dbDetail._id });
         if (deleteResult.deletedCount > 0) {
             console.log(`Document with ID '${dbDetail._id}' deleted successfully from MongoDB.`);
+            return res.status(404).send({ status: false, message:`Sheet name '${tableName}' not found`});
+
         } else {
-            console.warn(`Document with ID '${dbDetail._id}' not found in MongoDB.`);
+            // console.warn(`Document with ID '${dbDetail._id}' not found in MongoDB.`);
+            return res.status(200).send({ status: true, message: `Sheet name '${tableName}' delete successfully`});
+
         }
     } catch (err) {
         console.error('Error during table drop and document deletion:', err);
-        throw err;
+        res.status(500).send({ status: false, message: err.message });
     }
 }
 
@@ -246,8 +246,8 @@ async function sanitizeColumnName(name, maxLength = 64) {
             console.warn(`Column name '${name}' is too long and will be truncated.`);
             sanitized = sanitized.substring(0, maxLength);
         }
-        sanitized = sanitized.trim();
-        return sanitized.toLowerCase();
+        sanitized = sanitized?.trim();
+        return sanitized?.toLowerCase();
     } catch (err) {
         console.error("Error sanitizing column name:", err);
         return '';
@@ -293,5 +293,6 @@ async function getColumnType(sampleData) {
 
 
 export {
-    sheetUpload
+    sheetUpload,
+    dropTableAndDeleteDbDetail
 }

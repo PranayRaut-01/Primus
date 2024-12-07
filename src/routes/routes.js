@@ -9,7 +9,7 @@ import { dbConfigStr } from '../models/dbConfigStr.js'
 import { askQuestion } from '../agents/agent.js'
 import { main } from '../report/dbDataToSheet.js'
 import { testConnection, fetchDbDetails } from '../controller/createdb.js'
-import { sheetUpload } from '../controller/excleToDb.js'
+import { sheetUpload,dropTableAndDeleteDbDetail } from '../controller/excleToDb.js'
 import { embedAndStoreSchema } from '../clientDB/pinecone.js'
 import { saveDashboardAnalyticsData,
   getDashboardAnalyticsData,
@@ -268,14 +268,14 @@ router.post('/testConnection', authUser, async (req, res) => {
 router.post('/database', authUser, async (req, res) => {
   try {
     const userId = new ObjectId(req.token)
-    const { dbtype, host, server, database, username, password, schema, aliasName } = req.body;
+    const { dbtype, host, server, database, username, password, schema, tableName } = req.body;
 
-    if (!dbtype || (!host || !server) || !database || !username || !password || !schema || !aliasName) {
+    if (!dbtype || (!host || !server) || !database || !username || !password || !schema || !tableName) {
       return res.status(400).send({ status: true, message: "Mandatory parameter missing" });
     }
 
     const data = {
-      userId: userId, dbtype: dbtype, database: database, username: username, password: password, schema: schema, aliasName: aliasName
+      userId: userId, dbtype: dbtype, database: database, username: username, password: password, schema: schema, tableName: tableName
     }
     if (host) {
       data.host = host
@@ -313,7 +313,7 @@ router.get('/database', authUser, async (req, res) => {
 router.get('/connecteddatabases', authUser, async (req, res) => {
   try {
     const userId = new ObjectId(req.token)
-    const data = await DatabaseCredentials.find({ userId }).select('_id database aliasName').lean();
+    const data = await DatabaseCredentials.find({ userId }).select('_id database tableName').lean();
     res.status(200).json({ status: true, data: data });
   } catch (error) {
     console.error('Error fetching connected databases:', error);
@@ -336,6 +336,8 @@ router.get('/existingSheets', authUser, async (req, res) => {
 
 
 router.post('/uploadSheet', authUser, upload.single('file'),sheetUpload );
+router.delete('/uploadSheet', authUser,dropTableAndDeleteDbDetail );
+
 
 
 router.get('/chatHistory', authUser, async (req, res) => {
@@ -495,7 +497,7 @@ router.put('/api/notes/:id', authUser, async (req, res) => {
     res.status(201).send({ status: true, message: "Note update", data: updatedNote });
   } catch (err) {
     console.error('Error updating note:', err);
-    res.status(500).json({ message: 'Failed to update note', error: err.message });
+    res.status(500).json({  status: false,message: 'Failed to update note', error: err.message });
   }
 });
 
@@ -508,7 +510,7 @@ router.get('/api/notes/:id', authUser, async (req, res) => {
     res.status(200).send({ status: true, message: "notes details by id", data: note });
   } catch (err) {
     console.error('Error fetching note:', err);
-    res.status(500).json({ message: 'Failed to fetch note', error: err.message });
+    res.status(500).json({ status: false, message: 'Failed to fetch note', error: err.message });
   }
 });
 
@@ -519,7 +521,7 @@ router.get('/api/notes', authUser, async (req, res) => {
     res.status(200).send({ status: true, message: "all the notes of perticular user", data: notes });
   } catch (err) {
     console.error('Error fetching notes:', err);
-    res.status(500).json({ message: 'Failed to fetch notes', error: err.message });
+    res.status(500).json({ status: false, message: 'Failed to fetch notes', error: err.message });
   }
 });
 
