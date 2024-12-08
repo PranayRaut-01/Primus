@@ -9,6 +9,7 @@ import mongoose from 'mongoose';
 const ObjectId = mongoose.Types.ObjectId;
 import { fetchDbDetails,createDb } from '../controller/createdb.js'
 import { DatabaseCredentials } from '../models/dbCreds.js'
+import { queryExecuter } from "../clientDB/connectClientDb.js"
 
 // Create a __dirname equivalent
 const __filename = fileURLToPath(import.meta.url);
@@ -62,8 +63,11 @@ async function sheetUpload(req, res) {
             if (!dbDetail.config) {
                 return res.status(500).send({status:false, error: 'Server error', message: dbDetail.message });
             }
-            await saveDataFromExcelToDb(req, res, sheetData, dbDetail);
-            return res.status(200).send({ status: true, message: "New sheet uploaded and table created successfully." });
+            const result = await saveDataFromExcelToDb(req, res, sheetData, dbDetail);
+            if(result.status){
+                return res.status(200).send({ status: true, message: "New sheet uploaded and table created successfully." });
+            }
+            return res.status(500).send(result);
         } else if (action === 'append') {
 
             const dbDetail = await fetchDbDetails({userId:userId,tableName:tableName})
@@ -157,18 +161,9 @@ async function saveDataFromExcelToDb(req, res, sheetData, dbDetail) {
                 return value !== undefined ? value : null; // Handle null or undefined values
             })
         );
-    
-
-        // Connect to MySQL database
-        const connection = await mysql.createConnection(dbDetail.config);
-
-        if(!connection){
-            await DatabaseCredentials.deleteOne({ _id: dbDetail._id });
-            return { status: false, message: "database connection time out" }
-        }
 
         // Fetch all table names from the database
-        const [tables] = await connection.query(`SHOW TABLES`);
+        const tables = await queryExecuter(dbDetail, `SHOW TABLES`);
         const tableNames = tables.map(row => Object.values(row)[0]);
 
         const existingTable = tableNames.includes(dbDetail.tableName);
@@ -180,7 +175,7 @@ async function saveDataFromExcelToDb(req, res, sheetData, dbDetail) {
                 ${filteredHeaders.map((header, index) => `\`${header}\` ${columnTypes[index]}`).join(',\n')}
             );`;
 
-            await connection.query(createTableQuery);
+            await queryExecuter(dbDetail,createTableQuery);
 
             // Save schema and table name in dbDetail
             let schema = filteredHeaders.map((header, index) => ({
@@ -193,17 +188,15 @@ async function saveDataFromExcelToDb(req, res, sheetData, dbDetail) {
 
         // Insert data into the table
         const insertDataQuery = `INSERT INTO \`${dbDetail.tableName}\` (${filteredHeaders.map(header => `\`${header}\``).join(', ')}) VALUES ?;`;
-        const insertedData = await connection.query(insertDataQuery, [formattedRows]);
+        const insertedData = await queryExecuter(dbDetail, insertDataQuery, [formattedRows]);
 
-        if (!insertedData[0].affectedRows > 0) {
-            console.log('Data not inserted successfully.');
+        if (!insertedData.affectedRows > 0) {
+            throw Error('Data not inserted successfully.');
         }
-
-        // Close the MySQL connection
-        await connection.end();
-
         return { status: true}
     } catch (err) {
+        await queryExecuter(dbDetail,`DROP TABLE;`);
+        await DatabaseCredentials.deleteOne({ _id: dbDetail._id });
         console.error(err);
         return { status: false, message: err.message }
     }
@@ -217,16 +210,11 @@ async function dropTableAndDeleteDbDetail(req, res) {
         if (!dbDetail.config) {
             return res.status(500).send({ error: 'Server error', message: dbDetail.message });
         }
-        // Connect to MySQL
-        const connection = await mysql.createConnection(dbDetail.config);
 
         // Drop the table
         const dropTableQuery = `DROP TABLE IF EXISTS \`${dbDetail.tableName}\``;
-        await connection.query(dropTableQuery);
+        await queryExecuter(dbDetail,dropTableQuery);
         console.log(`Table '${dbDetail.tableName}' dropped successfully.`);
-
-        // Close the MySQL connection
-        await connection.end();
 
         // Delete the dbDetail document from MongoDB
         const deleteResult = await DatabaseCredentials.deleteOne({ _id: dbDetail._id });

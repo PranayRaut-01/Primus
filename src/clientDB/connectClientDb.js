@@ -66,13 +66,16 @@ async function executePgSqlQuery(dbDetail,query) {
 }
 
 
-async function executeMySQLQuery(dbDetail, query) {
+async function executeMySQLQuery(dbDetail, query, formattedRows) {
   try {
     const connection = await initializeMySQLConnection(dbDetail.config);
-    if(!connection.status){
-      return connection.error
-    };
-    const [rows] = await connection.connection.execute(query, [dbDetail.config.database]);
+    if (!connection.status) {
+      return connection.error;
+    }
+    
+    const [rows] = formattedRows.length==0?await connection.connection.execute(query, [dbDetail.config.database]):await connection.connection.query(query, formattedRows);
+   
+    await connection.connection.end();
     return rows;
   } catch (err) {
     console.error('Error executing MySQL query:', err);
@@ -80,16 +83,17 @@ async function executeMySQLQuery(dbDetail, query) {
   }
 }
 
-async function queryExecuter(dbDetail,query){
+
+async function queryExecuter(dbDetail,query,formattedRows=[]){
   try {
     if(dbDetail.dbtype == 'mssql'){
-      return await executeMssqlQuery(dbDetail,query)
+      return await executeMssqlQuery(dbDetail,query,formattedRows)
     }
     else if(dbDetail.dbtype == 'postgresql'){
-      return await executePgSqlQuery(dbDetail,query)
+      return await executePgSqlQuery(dbDetail,query,formattedRows)
     }
     else if(dbDetail.dbtype == 'mysql'){
-      return await executeMySQLQuery(dbDetail,query)
+      return await executeMySQLQuery(dbDetail,query,formattedRows)
     }else{
       throw new Error("database not mentioned"); 
     }
