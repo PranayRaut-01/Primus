@@ -36,7 +36,7 @@ async function sheetUpload(req, res) {
 
         if (action === 'new') {
             // Handle new sheet upload
-            let clientDbData = await DatabaseCredentials.findOne({ userId: userId, database: userId })
+            let clientDbData = await DatabaseCredentials.findOne({ userId: userId, database: userId.toString() })
 
             if (!clientDbData) {
                 clientDbData = await DatabaseCredentials.findOne({ _id: new ObjectId(process.env.DB_ID) })
@@ -45,7 +45,8 @@ async function sheetUpload(req, res) {
             const config = {
                 userId: userId,
                 dbtype: clientDbData.dbtype,
-                database: userId, username: clientDbData.username,
+                database: userId.toString(), 
+                username: clientDbData.username,
                 password: clientDbData.password,
                 host: clientDbData.host,
                 tableName: tableName
@@ -177,6 +178,7 @@ async function saveDataFromExcelToDb(req, res, sheetData, dbDetail) {
 
             // Save schema and table name in dbDetail
             let schema = filteredHeaders.map((header, index) => ({
+                table_name: dbDetail.tableName,
                 column_name: header,
                 data_type: columnTypes[index],
             }));
