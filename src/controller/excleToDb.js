@@ -33,6 +33,7 @@ async function sheetUpload(req, res) {
         const sheetName = workbook.SheetNames[0];
         const sheetData = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName], { header: 1 });
         let [headers, ...rows] = sheetData;
+        fs.unlinkSync(filePath);
 
         if (action === 'new') {
             // Handle new sheet upload
@@ -161,6 +162,11 @@ async function saveDataFromExcelToDb(req, res, sheetData, dbDetail) {
         // Connect to MySQL database
         const connection = await mysql.createConnection(dbDetail.config);
 
+        if(!connection){
+            await DatabaseCredentials.deleteOne({ _id: dbDetail._id });
+            return { status: false, message: "database connection time out" }
+        }
+
         // Fetch all table names from the database
         const [tables] = await connection.query(`SHOW TABLES`);
         const tableNames = tables.map(row => Object.values(row)[0]);
@@ -195,9 +201,6 @@ async function saveDataFromExcelToDb(req, res, sheetData, dbDetail) {
 
         // Close the MySQL connection
         await connection.end();
-
-        // Clean up the uploaded file
-        if (dbDetail.filePath) fs.unlinkSync(dbDetail.filePath);
 
         return { status: true}
     } catch (err) {
