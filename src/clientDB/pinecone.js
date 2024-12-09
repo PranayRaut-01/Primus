@@ -8,6 +8,16 @@ const { Configuration, OpenAIApi } = openai; // Ensure you import OpenAI for gen
 
 // Load environment variables
 dotenv.config();
+// Check if the Pinecone API key is available in environment variables
+if (!process.env.PINECONE_API_KEY) {
+    throw new Error('PINECONE_API_KEY is not defined in the environment variables');
+}
+
+// If OpenAI is also being used, make sure to configure OpenAI API key
+if (!process.env.OPENAI_API_KEY) {
+    throw new Error('OPENAI_API_KEY is not defined in the environment variables');
+}
+
 
 // Initialize OpenAI embeddings
 const embeddings = new OpenAIEmbeddings({
