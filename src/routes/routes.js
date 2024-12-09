@@ -147,6 +147,7 @@ router.post('/newMessage', authUser, async (req, res) => {
     console.log("request message : ", message)
 
     const dbDetail = await fetchDbDetails({userId:userId,database:database})
+    console.log(dbDetail)
     if(!dbDetail.config){
       res.status(500).send({ error: 'Server error', message: dbDetail.message });
     }
