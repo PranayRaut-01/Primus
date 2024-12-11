@@ -37,9 +37,9 @@ async function saveDashboardAnalyticsData(req, res) {
 async function getDashboardAnalyticsData(req,res) {
     try {
         const userId = new ObjectId(req.token)
-        const { database } = req.body;
+        const  {database}  = req.params;
 
-        const dbDetail = await fetchDbDetails({userId:userId,database:database})
+        const dbDetail = await fetchDbDetails({userId,database})
         if(!dbDetail.config){
           res.status(500).send({ error: 'Server error', message: dbDetail.message });
         }

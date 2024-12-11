@@ -686,7 +686,7 @@ router.get('/api/admin/feedback', authUser, async (req, res) => {
 
 router.post('/dashboardAnalytics', authUser, saveDashboardAnalyticsData)
 
-router.get('/dashboardAnalytics', authUser, getDashboardAnalyticsData)
+router.get('/dashboardAnalytics/:database', authUser, getDashboardAnalyticsData)
 
 router.get('/dashboardAnalytics', authUser, getDashboardAnalyticsDataById)
 
