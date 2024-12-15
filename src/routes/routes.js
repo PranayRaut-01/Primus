@@ -146,7 +146,7 @@ router.post('/newMessage', authUser, async (req, res) => {
     const chat_history = await ChatLog.find({ sessionId })
     console.log("request message : ", message)
 
-    const dbDetail = await fetchDbDetails({userId:userId,database:database})
+    const dbDetail = await fetchDbDetails({_id:new ObjectId(database),userId:userId})
     console.log(dbDetail)
     if(!dbDetail.config){
       res.status(500).send({ error: 'Server error', message: dbDetail.message });
