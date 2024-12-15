@@ -690,7 +690,7 @@ router.get('/dashboardAnalytics/:database', authUser, getDashboardAnalyticsData)
 
 router.get('/dashboardAnalytics/:id/:database', authUser, getDashboardAnalyticsDataById)
 
-router.put('/dashboardAnalytics/:id', authUser, updateDashboardAnalyticsData)
+router.put('/dashboardAnalytics', authUser, updateDashboardAnalyticsData)
 
 router.delete('/dashboardAnalytics/:id', authUser, deleteDashboardAnalyticsData)
 

@@ -8,7 +8,7 @@ const ObjectId = mongoose.Types.ObjectId;
 async function saveDashboardAnalyticsData(req, res) {
     try {
         const userId = new ObjectId(req.token)
-        const { database, query, title, type } = req.body;
+        const { database, query, title, type, graphoption } = req.body;
         // Validate required parameters
         if (!database || !query || !title ) {
             return res.status(400).json({ status: false, message: 'Mandatory parameters missing' });
@@ -96,9 +96,8 @@ async function getDashboardAnalyticsDataById(req,res) {
 
 async function updateDashboardAnalyticsData(req,res) {
     try {
-        const { id } = req.params;
         const userId = new ObjectId(req.token)
-        const { database, title, query, graphoption } = req.body;
+        const { id ,database, title, query, graphoption, type } = req.body;
 
         const dbDetail = await fetchDbDetails({userId:userId,database:database})
         if(!dbDetail.config){
@@ -106,10 +105,24 @@ async function updateDashboardAnalyticsData(req,res) {
         }
 
         const sql_result = await queryExecuter(dbDetail, query);
-        if(sql_result && sql_result.length > 0){
+        if(!sql_result){
+            res.status(400).json({ status:true , message: 'No data found for this query', error: sql_result.message });
+        }
+        if(type == 'graph'){
             const updatedRecord = await dashboardAnalytics.findByIdAndUpdate(
                 id,
-                { userId, database: new ObjectId(dbDetail._id), title, query, graphoption },
+                { userId, database: new ObjectId(dbDetail._id), title, query, graphoption, type },
+                { new: true, runValidators: true }
+            );
+    
+            if (!updatedRecord) {
+                return res.status(404).json({ message: 'Dashboard Analyst document not found' });
+            }
+            res.status(201).send({ status: true, message: "Dashboard Analyst created successfully", data: sql_result, title:title });
+        }else if (type == 'metrix'){
+            const updatedRecord = await dashboardAnalytics.findByIdAndUpdate(
+                id,
+                { userId, database: new ObjectId(dbDetail._id), title, query, type },
                 { new: true, runValidators: true }
             );
     
@@ -118,8 +131,9 @@ async function updateDashboardAnalyticsData(req,res) {
             }
             res.status(201).send({ status: true, message: "Dashboard Analyst created successfully", data: sql_result, title:title });
         }else{
-            res.status(400).json({ status:true , message: 'No data found for this query', error: sql_result.message });
+            res.status(500).json({ message: 'Error updating Dashboard Analyst', error: "Type missing" });
         }
+      
     } catch (error) {
         res.status(500).json({ message: 'Error updating Dashboard Analyst', error: error.message });
     }
