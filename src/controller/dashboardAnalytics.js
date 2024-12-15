@@ -29,7 +29,7 @@ async function saveDashboardAnalyticsData(req, res) {
             const newRecord = new dashboardAnalytics({ userId, database: new ObjectId(dbDetail._id), title, query, graphoption });
             await newRecord.save();
             res.status(201).send({ status: true, message: "Dashboard Analyst created successfully", data: sql_result, title:title , type:type});
-        }else if(type == 'metrix'){
+        }else if(type == 'metrics'){
             const newRecord = new dashboardAnalytics({ userId, database: new ObjectId(dbDetail._id), title, query});
             await newRecord.save();
             res.status(201).send({ status: true, message: "Dashboard Analyst created successfully", data: sql_result, title:title , type:type});
@@ -119,7 +119,7 @@ async function updateDashboardAnalyticsData(req,res) {
                 return res.status(404).json({ message: 'Dashboard Analyst document not found' });
             }
             res.status(201).send({ status: true, message: "Dashboard Analyst created successfully", data: sql_result, title:title });
-        }else if (type == 'metrix'){
+        }else if (type == 'metrics'){
             const updatedRecord = await dashboardAnalytics.findByIdAndUpdate(
                 id,
                 { userId, database: new ObjectId(dbDetail._id), title, query, type },
