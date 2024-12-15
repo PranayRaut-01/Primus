@@ -688,7 +688,7 @@ router.post('/dashboardAnalytics', authUser, saveDashboardAnalyticsData)
 
 router.get('/dashboardAnalytics/:database', authUser, getDashboardAnalyticsData)
 
-router.get('/dashboardAnalytics', authUser, getDashboardAnalyticsDataById)
+router.get('/dashboardAnalytics/:id/:database', authUser, getDashboardAnalyticsDataById)
 
 router.put('/dashboardAnalytics/:id', authUser, updateDashboardAnalyticsData)
 

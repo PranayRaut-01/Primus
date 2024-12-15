@@ -19,6 +19,9 @@ const dashboardAnalyticsSchema = new Schema({
     query:{
         type:String,
         required:true
+    },
+    graphoption:{
+        type:Object,
     }
 },{ timestamps: true })
 
