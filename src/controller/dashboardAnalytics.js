@@ -14,14 +14,14 @@ async function saveDashboardAnalyticsData(req, res) {
             return res.status(400).json({ status: false, message: 'Mandatory parameters missing' });
         }
 
-        const dbDetail = await fetchDbDetails({userId:userId,database:database})
+        const dbDetail = await fetchDbDetails({userId:userId,_id:new ObjectId(database)})
         if(!dbDetail.config){
           res.status(500).send({ error: 'Server error', message: dbDetail.message });
         }
 
         const sql_result = await queryExecuter(dbDetail, query);
 
-        if(!sql_result){
+        if(!sql_result || !Array.isArray(sql_result)){
             res.status(400).json({ status:true , message: 'No data found for this query', error: sql_result.message });
         }
 
@@ -46,7 +46,7 @@ async function getDashboardAnalyticsData(req,res) {
         const userId = new ObjectId(req.token)
         const  {database}  = req.params;
 
-        const dbDetail = await fetchDbDetails({userId,database})
+        const dbDetail = await fetchDbDetails({userId,_id:new ObjectId(database)})
         if(!dbDetail.config){
           res.status(500).send({ error: 'Server error', message: dbDetail.message });
         }
@@ -76,7 +76,7 @@ async function getDashboardAnalyticsDataById(req,res) {
         const { id,database } = req.params;
         const userId = new ObjectId(req.token)
 
-        const dbDetail = await fetchDbDetails({userId:userId,database:database})
+        const dbDetail = await fetchDbDetails({userId:userId,database:new ObjectId(database)})
         if(!dbDetail.config){
           res.status(500).send({ error: 'Server error', message: dbDetail.message });
         }
@@ -99,7 +99,7 @@ async function updateDashboardAnalyticsData(req,res) {
         const userId = new ObjectId(req.token)
         const { id ,database, title, query, graphoption, type } = req.body;
 
-        const dbDetail = await fetchDbDetails({userId:userId,database:database})
+        const dbDetail = await fetchDbDetails({userId:userId,database:new ObjectId(database)})
         if(!dbDetail.config){
           res.status(500).send({ error: 'Server error', message: dbDetail.message });
         }
