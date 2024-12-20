@@ -76,7 +76,7 @@ async function getDashboardAnalyticsDataById(req,res) {
         const { id,database } = req.params;
         const userId = new ObjectId(req.token)
 
-        const dbDetail = await fetchDbDetails({userId:userId,database:new ObjectId(database)})
+        const dbDetail = await fetchDbDetails({userId:userId,_id:new ObjectId(database)})
         if(!dbDetail.config){
           res.status(500).send({ error: 'Server error', message: dbDetail.message });
         }
@@ -99,7 +99,7 @@ async function updateDashboardAnalyticsData(req,res) {
         const userId = new ObjectId(req.token)
         const { id ,database, title, query, graphoption, type } = req.body;
 
-        const dbDetail = await fetchDbDetails({userId:userId,database:new ObjectId(database)})
+        const dbDetail = await fetchDbDetails({userId:userId,_id:new ObjectId(database)})
         if(!dbDetail.config){
           res.status(500).send({ error: 'Server error', message: dbDetail.message });
         }
