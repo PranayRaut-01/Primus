@@ -435,16 +435,19 @@ router.post('/graphData', async (req, res) => {
         borderColor: 'rgba(255, 99, 132, 1)', // Red border color
         backgroundColor: 'rgba(255, 99, 132, 0.2)' // Red background color with opacity
       },
-      {
-        label: yaxis2 ? yaxis2 : "Second Parameter",
+      ]
+    };
+
+    if(yaxis2){
+      structuredData.datasets.push({
+        label: yaxis2,
         data: yaxis2 ? data.map(row => row[yaxis2]) : [],
         fill: false,
         yAxisID: "y-axis-2",
         borderColor: 'rgba(54, 162, 235, 1)', // Blue border color
         backgroundColor: 'rgba(54, 162, 235, 0.2)' // Blue background color with opacity
-      }
-      ]
-    };
+      })
+    }
 
     // Clean undefined keys if xaxis2 is not provided
     Object.keys(structuredData).forEach(key => {
