@@ -417,7 +417,7 @@ router.post('/graphData', async (req, res) => {
   try {
     const { xaxis, yaxis1, yaxis2, chatLogId } = req.body;
 
-    if (!xaxis || !yaxis1) {
+    if (!xaxis || !yaxis1 ||!chatLogId) {
       return res.status(400).send({ status: true, message: "Mandatory parameter missing" });
     }
 
