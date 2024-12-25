@@ -125,14 +125,14 @@ async function saveDataFromExcelToDb(req, res, sheetData, dbDetail) {
         // Identify date or datetime columns
         const dateColumns = filteredHeaders.reduce((acc, header, index) => {
             if (['DATE', 'DATETIME'].includes(columnTypes[index])) {
-                acc.push(index); // Store column indices
+                acc.push(index); 
             }
             return acc;
         }, []);
 
         // Format date and datetime values in rows
         const formattedRows = rows
-        .filter(row => row.some(value => value !== "" && value !== undefined && value !== null)) // Skip completely empty rows
+        .filter(row => row.some(value => value !== "" && value !== undefined && value !== null)) 
         .map(row => 
             filteredHeaders.map((_, colIndex) => {
                 const value = row[colIndex];

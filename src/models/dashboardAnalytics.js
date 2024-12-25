@@ -22,6 +22,10 @@ const dashboardAnalyticsSchema = new Schema({
     },
     graphoption:{
         type:Object,
+    },
+    type: {
+        type:String,
+        required:true
     }
 },{ timestamps: true })
 

@@ -26,11 +26,11 @@ async function saveDashboardAnalyticsData(req, res) {
         }
 
         if(type == 'graph'){
-            const newRecord = new dashboardAnalytics({ userId, database: new ObjectId(dbDetail._id), title, query, graphoption });
+            const newRecord = new dashboardAnalytics({ userId, database: new ObjectId(dbDetail._id), title, query, graphoption, type });
             await newRecord.save();
             res.status(201).send({ status: true, message: "Dashboard Analyst created successfully", data: sql_result, title:title , type:type});
         }else if(type == 'metrics'){
-            const newRecord = new dashboardAnalytics({ userId, database: new ObjectId(dbDetail._id), title, query});
+            const newRecord = new dashboardAnalytics({ userId, database: new ObjectId(dbDetail._id), title, query, type});
             await newRecord.save();
             res.status(201).send({ status: true, message: "Dashboard Analyst created successfully", data: sql_result, title:title , type:type});
         }
@@ -87,8 +87,11 @@ async function getDashboardAnalyticsDataById(req,res) {
         }
         
         const sql_result = await queryExecuter(dbDetail, records.query);
-
-        res.status(200).json({ message: 'Fetched data successfully', data: sql_result });
+        if(!sql_result){
+            return res.status(500).json({ status:true , message: 'Error while connecting with dtabase'});
+        }
+        records.data = sql_result
+        res.status(200).json({ message: 'Fetched data successfully', data: records });
     } catch (err) {
         res.status(500).json({ message: 'Error fetching Dashboard Analysts', error: err.message });
     }
@@ -118,7 +121,8 @@ async function updateDashboardAnalyticsData(req,res) {
             if (!updatedRecord) {
                 return res.status(404).json({ message: 'Dashboard Analyst document not found' });
             }
-            res.status(201).send({ status: true, message: "Dashboard Analyst created successfully", data: sql_result, title:title });
+            updatedRecord.data = sql_result
+            res.status(201).send({ status: true, message: "Dashboard Analyst created successfully", data: updatedRecord });
         }else if (type == 'metrics'){
             const updatedRecord = await dashboardAnalytics.findByIdAndUpdate(
                 id,
@@ -129,7 +133,8 @@ async function updateDashboardAnalyticsData(req,res) {
             if (!updatedRecord) {
                 return res.status(404).json({ message: 'Dashboard Analyst document not found' });
             }
-            res.status(201).send({ status: true, message: "Dashboard Analyst created successfully", data: sql_result, title:title });
+            updatedRecord.data = sql_result
+            res.status(201).send({ status: true, message: "Dashboard Analyst created successfully", data: updatedRecord });
         }else{
             res.status(500).json({ message: 'Error updating Dashboard Analyst', error: "Type missing" });
         }
