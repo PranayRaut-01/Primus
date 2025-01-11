@@ -8,7 +8,15 @@ import { authUser } from "../middleware/auth.js";
 import { dbConfigStr } from "../models/dbConfigStr.js";
 import { askQuestion } from "../agents/agent.js";
 import { main } from "../report/dbDataToSheet.js";
+import {
+  requestPasswordReset,
+  verify2FACodeAndResetPassword,
+} from "../controller/passwordResetController.js";
 import { testConnection, fetchDbDetails } from "../controller/createdb.js";
+import {
+  sendTwoFactorAuthEmail,
+  verify2FACode,
+} from "../controller/twoFACodeController.js";
 import {
   sheetUpload,
   dropTableAndDeleteDbDetail,
@@ -51,6 +59,17 @@ router.get("/", async (req, res) => {
 
 router.post("/signup", signupUser);
 router.post("/login", loginUser);
+// Route to send 2FA code email
+router.post("/send-2fa", sendTwoFactorAuthEmail);
+
+// Route to verify the 2FA code
+router.post("/verify-2fa", verify2FACode);
+
+// Route to request 2FA code for password reset
+router.post('/request-password-reset', requestPasswordReset);
+
+// Route to verify the 2FA code and reset the password
+router.post('/verify-2fa-reset-password', verify2FACodeAndResetPassword);
 
 // Helper function to validate email addresses
 const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
