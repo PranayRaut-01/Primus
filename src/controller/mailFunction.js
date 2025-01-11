@@ -20,16 +20,30 @@ const transporter = nodemailer.createTransport({
  * @param {string} mailDetails.subject - Email subject.
  * @param {string} mailDetails.body - Email body content (can be HTML or plain text).
  * @param {Array<Object>} [mailDetails.attachments] - Optional email attachments.
+ * @param {string} [mailDetails.fromName] - Optional "From" name.
+ * @param {string} [mailDetails.fromEmail] - Optional "From" email.
  * @returns {Promise<string>} - Promise resolving to success message or error.
  */
-export const sendMail = async ({ to, subject, body, attachments }) => {
+export const sendMail = async ({
+  to,
+  subject,
+  body,
+  attachments,
+  fromName,
+  fromEmail,
+}) => {
   if (!to || !subject || !body) {
     throw new Error("Missing required fields: to, subject, or body.");
   }
 
+  // Set the 'from' email and name. Use default if not provided.
+  const from = `${fromName || "Agino Tech"} <${
+    fromEmail || "no-reply@agino.tech"
+  }>`;
+
   // Setup mail options
   const mailOptions = {
-    from: process.env.EMAIL_USER,
+    from, // From email and name
     to,
     subject,
     text: body, // Use `text` for plain text or use `html` for HTML content

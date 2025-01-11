@@ -52,6 +52,31 @@ router.get("/", async (req, res) => {
 router.post("/signup", signupUser);
 router.post("/login", loginUser);
 
+// Helper function to validate email addresses
+const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+// Helper function to handle file validation
+const handleFileUpload = (req, res) => {
+  if (req.file) {
+    const allowedMimeTypes = ["application/pdf", "image/jpeg", "image/png"];
+    if (!allowedMimeTypes.includes(req.file.mimetype)) {
+      fs.unlink(req.file.path, () => {}); // Clean up temporary file
+      return res
+        .status(400)
+        .send({ status: false, message: "Invalid file type." });
+    }
+
+    return [
+      {
+        filename: req.file.originalname,
+        path: req.file.path,
+      },
+    ];
+  }
+  return []; // Return an empty array if no file is uploaded
+};
+
+// Route for authenticated users to send email
 router.post("/sendmail", authUser, upload.single("file"), async (req, res) => {
   const { to, subject, body } = req.body;
 
@@ -63,7 +88,6 @@ router.post("/sendmail", authUser, upload.single("file"), async (req, res) => {
   }
 
   // Validate email address
-  const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   const recipients = Array.isArray(to) ? to : [to];
   if (!recipients.every(isValidEmail)) {
     return res
@@ -71,58 +95,40 @@ router.post("/sendmail", authUser, upload.single("file"), async (req, res) => {
       .send({ status: false, message: "Invalid email address(es)." });
   }
 
-  // Validate file existence
-  if (!req.file) {
-    return res
-      .status(400)
-      .send({ status: false, message: "File is required." });
-  }
-
-  // Validate file type
-  const allowedMimeTypes = ["application/pdf", "image/jpeg", "image/png"];
-  if (!allowedMimeTypes.includes(req.file.mimetype)) {
-    fs.unlink(req.file.path, () => {}); // Clean up temporary file
-    return res
-      .status(400)
-      .send({ status: false, message: "Invalid file type." });
-  }
-
-  const attachments = [
-    {
-      filename: req.file.originalname,
-      path: req.file.path,
-    },
-  ];
+  // Handle file upload
+  const attachments = handleFileUpload(req, res);
 
   try {
     // Send email
-    const result = await sendMail({
+    await sendMail({
       to: recipients.join(","),
       subject,
       body,
       attachments,
     });
 
-    // Clean up the temporary file
-    fs.unlink(req.file.path, (err) => {
-      if (err) {
-        console.error("Error deleting file:", err);
-      } else {
-        console.log("Temporary file deleted.");
-      }
-    });
+    // Clean up temporary file if it exists
+    if (req.file) {
+      fs.unlink(req.file.path, (err) => {
+        if (err) {
+          console.error("Error deleting file:", err);
+        }
+      });
+    }
 
     res.status(200).send({
       status: true,
       message: "Email Sent. Please check your inbox.",
     });
   } catch (error) {
-    // Delete the temporary file if sendMail fails
-    fs.unlink(req.file.path, () => {});
+    if (req.file) {
+      fs.unlink(req.file.path, () => {});
+    }
     res.status(500).send({ status: false, message: error.message });
   }
 });
 
+// Route for sending email without authentication
 router.post("/genericMailer", upload.single("file"), async (req, res) => {
   const { to, subject, body } = req.body;
 
@@ -134,7 +140,6 @@ router.post("/genericMailer", upload.single("file"), async (req, res) => {
   }
 
   // Validate email address
-  const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   const recipients = Array.isArray(to) ? to : [to];
   if (!recipients.every(isValidEmail)) {
     return res
@@ -142,43 +147,23 @@ router.post("/genericMailer", upload.single("file"), async (req, res) => {
       .send({ status: false, message: "Invalid email address(es)." });
   }
 
-  // Initialize the attachments array (empty if no file is uploaded)
-  let attachments = [];
-
-  // Validate file existence and type if file is uploaded
-  if (req.file) {
-    const allowedMimeTypes = ["application/pdf", "image/jpeg", "image/png"];
-    if (!allowedMimeTypes.includes(req.file.mimetype)) {
-      fs.unlink(req.file.path, () => {}); // Clean up temporary file
-      return res
-        .status(400)
-        .send({ status: false, message: "Invalid file type." });
-    }
-
-    attachments = [
-      {
-        filename: req.file.originalname,
-        path: req.file.path,
-      },
-    ];
-  }
+  // Handle file upload
+  const attachments = handleFileUpload(req, res);
 
   try {
     // Send email
-    const result = await sendMail({
+    await sendMail({
       to: recipients.join(","),
       subject,
       body,
-      attachments, // Attachments will be an empty array if no file is provided
+      attachments,
     });
 
-    // Clean up the temporary file if it exists
+    // Clean up temporary file if it exists
     if (req.file) {
       fs.unlink(req.file.path, (err) => {
         if (err) {
           console.error("Error deleting file:", err);
-        } else {
-          console.log("Temporary file deleted.");
         }
       });
     }
@@ -188,14 +173,12 @@ router.post("/genericMailer", upload.single("file"), async (req, res) => {
       message: "Email Sent. Please check your inbox.",
     });
   } catch (error) {
-    // Delete the temporary file if sendMail fails
     if (req.file) {
       fs.unlink(req.file.path, () => {});
     }
     res.status(500).send({ status: false, message: error.message });
   }
 });
-
 router.get("/auth/google", (req, res) => {
   console.log("inside auth google");
   console.log("Origin:", req.headers.origin);
