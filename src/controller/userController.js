@@ -1,14 +1,14 @@
-import jwt from 'jsonwebtoken';
-import bcrypt from 'bcrypt';
-import {User} from '../models/user.js';
- // Adjust as per your user model
+import jwt from "jsonwebtoken";
+import bcrypt from "bcrypt";
+import { User } from "../models/user.js";
+// Adjust as per your user model
 
 // Default password for Google SSO users (hashed to satisfy schema)
-const defaultPassword = 'GoogleSSO_DefaultPassword123!';
+const defaultPassword = "GoogleSSO_DefaultPassword123!";
 
 // Function to generate JWT token
 const generateToken = (userId) => {
-  return jwt.sign({ userId }, 'Pri%40mus', { expiresIn: '3h' });
+  return jwt.sign({ userId }, "Pri%40mus", { expiresIn: "3h" });
 };
 
 // Function to find or create user (for both Google and traditional login)
@@ -53,10 +53,10 @@ const authenticateUser = async (user, password) => {
 // Main loginUser function
 async function loginUser(req, res) {
   try {
-    console.log("inside login funtion")
+    console.log("inside login funtion");
     let user, token;
-    let {profile} = req
-    console.log(profile)
+    let { profile } = req;
+    console.log(profile);
 
     if (profile) {
       // Google SSO flow
@@ -64,7 +64,9 @@ async function loginUser(req, res) {
 
       // Ensure profile data is valid
       if (!email || !verified_email) {
-        return res.status(400).send({ status: false, message: "Google account not verified" });
+        return res
+          .status(400)
+          .send({ status: false, message: "Google account not verified" });
       }
 
       // Find or create user (Google SSO)
@@ -78,20 +80,24 @@ async function loginUser(req, res) {
       // Authenticate user (Google SSO doesn't require password)
       token = await authenticateUser(user);
 
-      return res.redirect(`https://app.agino.tech/home?token=${token}`)
+      return res.redirect(`https://app.agino.tech/chat?token=${token}`);
     } else {
       // Traditional login flow (email/password)
       const { username: email, password } = req.body;
 
       // Ensure email and password are provided
       if (!email || !password) {
-        return res.status(400).send({ status: false, message: "Mandatory parameter missing" });
+        return res
+          .status(400)
+          .send({ status: false, message: "Mandatory parameter missing" });
       }
 
       // Find user in the database
       user = await User.findOne({ email });
       if (!user) {
-        return res.status(404).json({ status: false, message: "Invalid username or password" });
+        return res
+          .status(404)
+          .json({ status: false, message: "Invalid username or password" });
       }
 
       // Authenticate user (with password check)
@@ -99,45 +105,67 @@ async function loginUser(req, res) {
     }
 
     // Successful authentication
-    res.status(200).send({ status: true, token, message: "Welcome to AginoTech" });
+    res
+      .status(200)
+      .send({ status: true, token, message: "Welcome to AginoTech" });
   } catch (err) {
     res.status(500).send({ status: false, message: err.message });
   }
 }
 
-
 // Signup route
-async function signupUser (req, res) {
+async function signupUser(req, res) {
   try {
     let newUser;
-    
+
     // If profile is provided, this is a Google SSO signup
     if (req.profile) {
       const { email, verified_email, name, googleId } = req.profile;
 
       if (!email) {
-        return res.status(400).send({ status: false, message: "Email is required" });
+        return res
+          .status(400)
+          .send({ status: false, message: "Email is required" });
+      }
+
+      // Check if user already exists
+      const existingUser = await User.findOne({ email });
+      if (existingUser) {
+        return res
+          .status(400)
+          .send({ status: false, message: "User already exists" });
       }
 
       newUser = new User({
         username: name, // May come from the Google profile or be optional
         email,
         googleId, // Store Google ID for future authentication
-        isVerified: true // Google SSO users are usually considered verified
+        isVerified: true, // Google SSO users are usually considered verified
       });
 
-      return loginUser(req, res)
-
+      return loginUser(req, res);
     } else {
       const { username, email, password } = req.body;
 
       if (!email) {
-        return res.status(400).send({ status: false, message: "Email is required" });
-      } 
+        return res
+          .status(400)
+          .send({ status: false, message: "Email is required" });
+      }
+
+      // Check if user already exists
+      const existingUser = await User.findOne({ email });
+      if (existingUser) {
+        return res
+          .status(400)
+          .send({ status: false, message: "User already exists" });
+      }
 
       // Traditional signup (email/password)
       if (!password || !username) {
-        return res.status(400).send({ status: false, message: "Mandatory parameter missing" });
+        return res
+          .status(400)
+          .send({ status: false, message: "Mandatory parameter missing" });
       }
 
       // Hash the password
@@ -148,19 +176,22 @@ async function signupUser (req, res) {
         username,
         email,
         password: hashedPassword,
-        isVerified: false // You can decide whether to verify users via email, etc.
+        isVerified: false, // You can decide whether to verify users via email, etc.
       });
     }
 
     // Save new user
     await newUser.save();
-    
-    res.status(201).json({ status: true, message: 'Your account is created successfully', data: newUser });
+
+    res.status(201).json({
+      status: true,
+      message: "Your account is created successfully",
+      data: newUser,
+    });
   } catch (error) {
-    console.error('Error creating user:', error);
-    res.status(500).json({ status: false, message: 'Server error' });
+    console.error("Error creating user:", error);
+    res.status(500).json({ status: false, message: "Server error" });
   }
 }
 
-
-export {loginUser,signupUser}
+export { loginUser, signupUser };
