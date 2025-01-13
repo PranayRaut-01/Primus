@@ -10,6 +10,8 @@ const userSchema = new mongoose.Schema(
     isVerified: { type: Boolean, default: true },
     isNewUser: { type: Boolean, default: true },
     userPreference: { type: Object, default: {} },
+    profile: { type: Object, default: {} },
+    phoneNumber: { type: String, default: "" },
   },
   { timestamps: true }
 );

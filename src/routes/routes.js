@@ -1,11 +1,24 @@
+// Importing dependencies
 import { Router } from "express";
-import fs from "fs";
+import multer from "multer";
+import path from "path";
+import jwt from "jsonwebtoken";
+import * as dotenv from "dotenv";
+import mongoose from "mongoose";
+import axios from "axios";
+import { dirname } from "path";
+import { fileURLToPath } from "url";
+
+// Importing models
 import { Session } from "../models/session.js";
 import { DatabaseCredentials } from "../models/dbCreds.js";
 import { User } from "../models/user.js";
 import { ChatLog } from "../models/chatLogs.js";
-import { authUser } from "../middleware/auth.js";
 import { dbConfigStr } from "../models/dbConfigStr.js";
+import { Notes } from "../models/notes.js";
+import { Feedback } from "../models/Feedback.js";
+
+// Importing controllers
 import { askQuestion } from "../agents/agent.js";
 import { main } from "../report/dbDataToSheet.js";
 import {
@@ -29,52 +42,75 @@ import {
   deleteDashboardAnalyticsData,
   getDashboardAnalyticsDataById,
 } from "../controller/dashboardAnalytics.js";
-import { Notes } from "../models/notes.js";
-import { Feedback } from "../models/Feedback.js";
-import multer from "multer";
-import path from "path";
-import jwt from "jsonwebtoken";
-import * as dotenv from "dotenv";
-import mongoose from "mongoose";
-import { dirname } from "path";
-import { fileURLToPath } from "url";
 import { uploadToS3 } from "../controller/uploadToS3.js";
 import { loginUser, signupUser } from "../controller/userController.js";
 import { sendMail } from "../controller/mailFunction.js";
-import axios from "axios";
-const ObjectId = mongoose.Types.ObjectId;
+import {
+  updateUserProfile,
+  getUserFeedbacks,
+  getUserDetails,
+} from "../controller/userProfileController.js";
+
+// Importing middleware
+import { authUser } from "../middleware/auth.js";
+
+// Setting up environment variables
 dotenv.config();
 
+// MongoDB utilities
+const ObjectId = mongoose.Types.ObjectId;
+
+// Setting up file paths
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
+// Configuring multer for file uploads
 const upload = multer({
   dest: path.join(__dirname, "uploads/"),
 });
+
+// Creating the router instance
 const router = Router();
 
+// ---------------------- Health check route ----------------------
+
 router.get("/", async (req, res) => {
-  res.status(200).send("<h1>Welcome to Agino tech</h1>");
+  const healthStatus = {
+    appName: "Agino",
+    status: "ok",
+    message: "Server is up",
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString(),
+    website: "https://agino.tech",
+    version: process.env.npm_package_version || "1.0.0",
+  };
+  res.status(200).json(healthStatus);
 });
+// ---------------------- Authentication Routes ----------------------
 
 router.post("/signup", signupUser);
 router.post("/login", loginUser);
-// Route to send 2FA code email
-router.post("/send-2fa", sendTwoFactorAuthEmail);
 
-// Route to verify the 2FA code
+//2FA routes
+router.post("/send-2fa", sendTwoFactorAuthEmail);
 router.post("/verify-2fa", verify2FACode);
 
-// Route to request 2FA code for password reset
-router.post('/request-password-reset', requestPasswordReset);
+// Request password reset (2FA)
+router.post("/request-password-reset", requestPasswordReset);
+router.post("/verify-2fa-reset-password", verify2FACodeAndResetPassword);
 
-// Route to verify the 2FA code and reset the password
-router.post('/verify-2fa-reset-password', verify2FACodeAndResetPassword);
+// ---------------------- Profile Routes ----------------------
+
+router.patch("/user", authUser, updateUserProfile);
+router.get("/user/feedbacks", authUser, getUserFeedbacks);
+router.get("/user", authUser, getUserDetails);
+
+// ---------------------- Mailer Routes ----------------------
 
 // Helper function to validate email addresses
 const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
-// Helper function to handle file validation
+// Helper function to handle file upload validation
 const handleFileUpload = (req, res) => {
   if (req.file) {
     const allowedMimeTypes = ["application/pdf", "image/jpeg", "image/png"];
@@ -95,8 +131,61 @@ const handleFileUpload = (req, res) => {
   return []; // Return an empty array if no file is uploaded
 };
 
-// Route for authenticated users to send email
-router.post("/sendmail", authUser, upload.single("file"), async (req, res) => {
+// Send authenticated email with attachment
+router.post(
+  "/sendmail",
+  authUser,
+  multer().single("file"),
+  async (req, res) => {
+    const { to, subject, body } = req.body;
+
+    // Validate required fields
+    if (!to || !subject || !body) {
+      return res
+        .status(400)
+        .send({ status: false, message: "All fields are required." });
+    }
+
+    // Validate email addresses
+    const recipients = Array.isArray(to) ? to : [to];
+    if (!recipients.every(isValidEmail)) {
+      return res
+        .status(400)
+        .send({ status: false, message: "Invalid email address(es)." });
+    }
+
+    // Handle file upload
+    const attachments = handleFileUpload(req, res);
+
+    try {
+      // Send email
+      await sendMail({
+        to: recipients.join(","),
+        subject,
+        body,
+        attachments,
+      });
+
+      // Clean up temporary file if it exists
+      if (req.file) {
+        fs.unlink(req.file.path, (err) => {
+          if (err) console.error("Error deleting file:", err);
+        });
+      }
+
+      res.status(200).send({
+        status: true,
+        message: "Email Sent. Please check your inbox.",
+      });
+    } catch (error) {
+      if (req.file) fs.unlink(req.file.path, () => {});
+      res.status(500).send({ status: false, message: error.message });
+    }
+  }
+);
+
+// Send email without authentication (Generic Mailer)
+router.post("/genericMailer", multer().single("file"), async (req, res) => {
   const { to, subject, body } = req.body;
 
   // Validate required fields
@@ -106,7 +195,7 @@ router.post("/sendmail", authUser, upload.single("file"), async (req, res) => {
       .send({ status: false, message: "All fields are required." });
   }
 
-  // Validate email address
+  // Validate email addresses
   const recipients = Array.isArray(to) ? to : [to];
   if (!recipients.every(isValidEmail)) {
     return res
@@ -129,75 +218,21 @@ router.post("/sendmail", authUser, upload.single("file"), async (req, res) => {
     // Clean up temporary file if it exists
     if (req.file) {
       fs.unlink(req.file.path, (err) => {
-        if (err) {
-          console.error("Error deleting file:", err);
-        }
+        if (err) console.error("Error deleting file:", err);
       });
     }
 
-    res.status(200).send({
-      status: true,
-      message: "Email Sent. Please check your inbox.",
-    });
+    res
+      .status(200)
+      .send({ status: true, message: "Email Sent. Please check your inbox." });
   } catch (error) {
-    if (req.file) {
-      fs.unlink(req.file.path, () => {});
-    }
+    if (req.file) fs.unlink(req.file.path, () => {});
     res.status(500).send({ status: false, message: error.message });
   }
 });
 
-// Route for sending email without authentication
-router.post("/genericMailer", upload.single("file"), async (req, res) => {
-  const { to, subject, body } = req.body;
+// ---------------------- Google OAuth Routes ----------------------
 
-  // Validate required fields
-  if (!to || !subject || !body) {
-    return res
-      .status(400)
-      .send({ status: false, message: "All fields are required." });
-  }
-
-  // Validate email address
-  const recipients = Array.isArray(to) ? to : [to];
-  if (!recipients.every(isValidEmail)) {
-    return res
-      .status(400)
-      .send({ status: false, message: "Invalid email address(es)." });
-  }
-
-  // Handle file upload
-  const attachments = handleFileUpload(req, res);
-
-  try {
-    // Send email
-    await sendMail({
-      to: recipients.join(","),
-      subject,
-      body,
-      attachments,
-    });
-
-    // Clean up temporary file if it exists
-    if (req.file) {
-      fs.unlink(req.file.path, (err) => {
-        if (err) {
-          console.error("Error deleting file:", err);
-        }
-      });
-    }
-
-    res.status(200).send({
-      status: true,
-      message: "Email Sent. Please check your inbox.",
-    });
-  } catch (error) {
-    if (req.file) {
-      fs.unlink(req.file.path, () => {});
-    }
-    res.status(500).send({ status: false, message: error.message });
-  }
-});
 router.get("/auth/google", (req, res) => {
   console.log("inside auth google");
   console.log("Origin:", req.headers.origin);
