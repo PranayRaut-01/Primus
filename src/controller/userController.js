@@ -33,16 +33,21 @@ const findOrCreateUser = async (profile) => {
 
 // Function to verify user and generate a token (common for both login flows)
 const authenticateUser = async (user, password) => {
+  // Check if user exists
+  if (!user) {
+    throw new Error("User not found, please sign up");
+  }
+
   // Check if user is verified
   if (!user.isVerified) {
-    throw new Error("User not verified, please contact contact@agino.tech");
+    throw new Error("User not verified");
   }
 
   // If password is provided, verify it (for traditional login)
   if (password) {
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
-      throw new Error("Invalid username or password");
+      throw new Error("Incorrect password");
     }
   }
 
@@ -97,7 +102,7 @@ async function loginUser(req, res) {
       if (!user) {
         return res
           .status(404)
-          .json({ status: false, message: "Invalid username or password" });
+          .json({ status: false, message: "User not found, please sign up" });
       }
 
       // Authenticate user (with password check)
