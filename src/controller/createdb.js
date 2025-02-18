@@ -86,7 +86,8 @@ async function fetchDbDetails(obj) {
         } else {
             dbDetail.config.server = dbDetail.server
         }
-          return dbDetail
+        dbDetail.schema = null
+        return dbDetail
     } catch (error) {
         console.error('Connection Error:', error.message);
         return {
@@ -96,9 +97,46 @@ async function fetchDbDetails(obj) {
     }
 }
 
+function createConnectionString(dbDetail) {
+    if (!dbDetail || !dbDetail.config) {
+        throw new Error("Invalid database details provided.");
+    }
+
+    const { user, password, database, host, server } = dbDetail.config;
+
+    if (!user || !password || !database) {
+        throw new Error("Missing required database credentials.");
+    }
+
+    let connectionString = "";
+
+    switch (dbDetail.dbtype.toLowerCase()) {
+        case "postgresql":
+        case "postgres":
+            connectionString = `postgresql://${user}:${encodeURIComponent(password)}@${host || server}/${database}`;
+            break;
+
+        case "mysql":
+            connectionString = `mysql+pymysql://${user}:${encodeURIComponent(password)}@${host || server}/${database}`;
+            break;
+
+        case "mssql":
+        case "sqlserver":
+            connectionString = `mssql://${user}:${encodeURIComponent(password)}@${host || server};database=${database}`;
+            break;
+
+        default:
+            throw new Error("Unsupported database type.");
+    }
+
+    return connectionString;
+}
+
+
 
 export {
     createDb,
     testConnection,
-    fetchDbDetails
+    fetchDbDetails,
+    createConnectionString
 }

@@ -72,7 +72,6 @@ async function executeMySQLQuery(dbDetail, query, formattedRows) {
     if (!connection.status) {
       return connection.error;
     }
-    
     const [rows] = formattedRows.length==0?await connection.connection.execute(query, [dbDetail.config.database]):await connection.connection.query(query, formattedRows);
    
     await connection.connection.end();

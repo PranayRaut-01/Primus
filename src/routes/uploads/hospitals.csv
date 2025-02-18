@@ -1,0 +1,199 @@
+Facility.Name,Facility.City,Facility.State,Facility.Type,Rating.Overall,Rating.Mortality,Rating.Safety,Rating.Readmission,Rating.Experience,Rating.Effectiveness,Rating.Timeliness,Rating.Imaging,Procedure.Heart Attack.Cost,Procedure.Heart Attack.Quality,Procedure.Heart Attack.Value,Procedure.Heart Failure.Cost,Procedure.Heart Failure.Quality,Procedure.Heart Failure.Value,Procedure.Pneumonia.Cost,Procedure.Pneumonia.Quality,Procedure.Pneumonia.Value,Procedure.Hip Knee.Cost,Procedure.Hip Knee.Quality,Procedure.Hip Knee.Value
+Southeast Alabama Medical Center,Dothan,AL,Government,2,Below,Above,Below,Below,Same,Above,Same,23394,Average,Average,17041,Average,Average,18281,Average,Average,25812,Average,Higher
+Marshall Medical Center South,Boaz,AL,Government,1,Below,Below,Below,Same,Above,Above,Below,22579,Average,Average,15819,Worse,Average,15614,Worse,Lower,22747,Average,Average
+Eliza Coffee Memorial Hospital,Florence,AL,Government,3,Below,Above,Above,Below,Same,Above,Below,24002,Average,Average,16334,Average,Average,17371,Average,Average,24491,Average,Higher
+Mizell Memorial Hospital,Opp,AL,Private,1,Same,Same,Below,Below,Below,Above,None,0,Unknown,Unknown,14541,Average,Lower,15226,Worse,Lower,23472,Average,Average
+Crenshaw Community Hospital,Luverne,AL,Proprietary,4,Same,None,Above,None,Same,Above,None,0,Unknown,Unknown,13767,Average,Lower,14341,Average,Lower,0,Unknown,Unknown
+St Vincent's East,Birmingham,AL,Private,2,Same,Below,Below,Below,Below,Below,Same,23940,Average,Average,16132,Average,Average,17848,Average,Average,23792,Average,Higher
+Dekalb Regional Medical Center,Fort Payne,AL,Proprietary,2,Below,Above,Below,Below,Same,Above,Same,23853,Average,Average,15761,Average,Average,17896,Worse,Average,0,Unknown,Unknown
+Shelby Baptist Medical Center,Alabaster,AL,Private,2,Same,Below,Above,Below,Same,Same,Below,24008,Average,Average,17937,Average,Higher,18858,Average,Higher,22367,Average,Average
+Callahan Eye Hospital,Birmingham,AL,Private,-1,None,None,None,None,Same,Same,None,0,Unknown,Unknown,0,Unknown,Unknown,0,Unknown,Unknown,0,Unknown,Unknown
+Helen Keller Memorial Hospital,Sheffield,AL,Government,3,Same,Above,Below,Same,Same,Above,Below,22948,Average,Average,17311,Average,Average,17516,Average,Average,23130,Average,Higher
+Dale Medical Center,Ozark,AL,Government,3,Same,None,Same,Above,Same,Above,Same,0,Unknown,Unknown,17651,Average,Average,17581,Average,Average,0,Unknown,Unknown
+Floyd Cherokee Medical Center,Centre,AL,Private,4,Same,None,Above,Above,Same,Same,None,0,Unknown,Unknown,17098,Average,Average,13812,Average,Lower,0,Unknown,Unknown
+Baptist Medical Center South,Montgomery,AL,Government,2,Below,Above,Below,Below,Same,Below,Same,23467,Average,Average,16826,Average,Average,19776,Average,Higher,20867,Average,Lower
+Jackson Hospital & Clinic Inc,Montgomery,AL,Private,2,Below,Below,Above,Same,Same,Below,Below,25850,Average,Higher,16463,Average,Average,17710,Worse,Average,21867,Average,Average
+East Alabama Medical Center,Opelika,AL,Government,4,Below,Above,Above,Above,Same,Above,Same,23682,Worse,Average,14465,Average,Lower,16309,Average,Lower,21050,Average,Lower
+Tanner Medical Center-east Alabama,Wedowee,AL,Government,3,Same,None,Same,None,Same,Above,None,0,Unknown,Unknown,19690,Average,Higher,14957,Average,Average,0,Unknown,Unknown
+University Of Alabama Hospital,Birmingham,AL,Government,2,Above,Below,Below,Above,Same,Below,Below,21355,Average,Lower,15763,Better,Lower,18019,Better,Average,24648,Average,Higher
+Community Hospital Inc,Tallassee,AL,Private,3,Same,None,Above,Below,Same,Same,Same,0,Unknown,Unknown,15013,Average,Average,16522,Average,Average,0,Unknown,Unknown
+Cullman Regional Medical Center,Cullman,AL,Government,2,Below,Below,Below,Below,Same,Above,Same,23153,Average,Average,16272,Average,Average,17412,Worse,Average,21359,Average,Average
+Andalusia Health,Andalusia,AL,Proprietary,4,Same,Above,Above,Below,Same,Above,Same,22544,Average,Average,14805,Average,Lower,16213,Average,Lower,21991,Average,Average
+Stringfellow Memorial Hospital,Anniston,AL,Proprietary,3,Same,Above,Below,Below,Same,Same,Same,23828,Average,Average,16970,Average,Average,16430,Average,Average,24326,Average,Higher
+Huntsville Hospital,Huntsville,AL,Government,2,Below,Above,Below,Above,Same,Below,Below,22856,Average,Average,16354,Average,Average,16944,Worse,Average,20481,Average,Lower
+Gadsden Regional Medical Center,Gadsden,AL,Proprietary,2,Same,Below,Below,Below,Below,Same,Below,23546,Average,Average,18316,Average,Higher,18481,Average,Higher,24922,Average,Higher
+Marion Regional Medical Center,Hamilton,AL,Private,5,Same,None,Above,Same,Same,Above,Same,0,Unknown,Unknown,15443,Average,Average,15495,Average,Lower,0,Unknown,Unknown
+Fayette Medical Center,Fayette,AL,Unknown,5,Same,None,Above,Above,Same,Same,Same,0,Unknown,Unknown,15135,Average,Average,14739,Average,Lower,0,Unknown,Unknown
+Riverview Regional Medical Center,Gadsden,AL,Proprietary,4,Above,Above,Below,Below,Same,Above,Same,24160,Average,Average,16413,Better,Average,19943,Average,Higher,24074,Average,Higher
+Georgiana Medical Center,Georgiana,AL,Proprietary,3,Same,None,Same,None,Same,Above,None,0,Unknown,Unknown,14180,Average,Lower,13727,Average,Lower,0,Unknown,Unknown
+Medical Center Enterprise,Enterprise,AL,Proprietary,3,Same,Above,Above,Same,Same,Same,Same,0,Unknown,Unknown,15247,Average,Average,16064,Average,Average,22411,Average,Average
+Greene County Hospital,Eutaw,AL,Government,3,None,None,Same,None,Same,Same,None,0,Unknown,Unknown,0,Unknown,Unknown,0,Unknown,Unknown,0,Unknown,Unknown
+Lake Martin Community Hospital,Dadeville,AL,Proprietary,4,None,None,Above,Same,Same,Above,None,0,Unknown,Unknown,0,Unknown,Unknown,14323,Average,Lower,0,Unknown,Unknown
+Flowers Hospital,Dothan,AL,Proprietary,3,Below,Above,Below,Same,Same,Above,Above,21779,Average,Lower,16007,Worse,Average,16796,Average,Average,24056,Average,Higher
+St Vincent's Birmingham,Birmingham,AL,Private,4,Same,Below,Above,Above,Below,Below,Same,24141,Average,Average,17434,Average,Average,17394,Average,Average,22149,Average,Average
+Bibb Medical Center,Centreville,AL,Government,-1,None,None,None,None,Below,Above,None,0,Unknown,Unknown,17905,Average,Average,14310,Average,Lower,0,Unknown,Unknown
+Lawrence Medical Center,Moulton,AL,Government,4,Same,None,Above,None,Same,Above,Same,0,Unknown,Unknown,15996,Average,Average,16653,Average,Average,0,Unknown,Unknown
+Highlands Medical Center,Scottsboro,AL,Government,1,Same,Below,Below,Below,Same,Same,Same,0,Unknown,Unknown,14855,Average,Lower,14509,Average,Lower,24701,Average,Higher
+Wiregrass Medical Center,Geneva,AL,Private,3,Same,None,Above,Same,Same,Above,None,0,Unknown,Unknown,14275,Average,Lower,14978,Average,Lower,0,Unknown,Unknown
+Russell Medical Center,Alexander City,AL,Private,3,Same,Same,Above,Above,Same,Above,Same,23992,Average,Average,17752,Average,Average,18443,Average,Average,25474,Average,Higher
+Medical Center Barbour,Eufaula,AL,Government,3,Same,None,Same,Same,Same,Above,Same,0,Unknown,Unknown,14841,Average,Average,12835,Average,Lower,0,Unknown,Unknown
+Clay County Hospital,Ashland,AL,Government,4,Same,None,Same,Above,Same,Same,None,0,Unknown,Unknown,15322,Average,Average,16250,Average,Average,0,Unknown,Unknown
+Northeast Alabama Regional Medical Center,Anniston,AL,Government,2,Same,Above,Below,Same,Same,Below,Same,23858,Average,Average,15430,Average,Lower,16757,Average,Average,23461,Average,Higher
+Athens Limestone Hospital,Athens,AL,Government,4,Same,Above,Above,Same,Same,Above,Below,0,Unknown,Unknown,14669,Average,Lower,15876,Average,Lower,23318,Average,Higher
+South Baldwin Regional Medical Center,Foley,AL,Proprietary,3,Same,Same,Below,Above,Same,Same,Below,23186,Average,Average,16286,Average,Average,15260,Average,Lower,20144,Average,Lower
+Decatur Morgan Hospital-decatur Campus,Decatur,AL,Government,3,Same,Above,Above,Same,Below,Below,Below,23363,Average,Average,14948,Average,Lower,16006,Average,Lower,22371,Average,Average
+Northwest Medical Center,Winfield,AL,Proprietary,4,Same,None,Above,Above,Same,Above,Same,0,Unknown,Unknown,15243,Average,Average,15457,Average,Lower,0,Unknown,Unknown
+University Of South Alabama Medical Center,Mobile,AL,Government,3,Same,Above,Below,Same,Same,Below,Below,0,Unknown,Unknown,15601,Average,Average,18856,Average,Average,0,Unknown,Unknown
+Walker Baptist Medical Center,Jasper,AL,Private,2,Same,Same,Same,Below,Same,Above,Same,25214,Average,Average,15422,Average,Average,16503,Worse,Average,20826,Average,Lower
+Providence Hospital,Mobile,AL,Church,2,Below,Below,Same,Same,Above,Same,Below,25291,Worse,Average,15325,Worse,Lower,16398,Average,Lower,21711,Average,Average
+Grove Hill Memorial Hospital,Grove Hill,AL,Government,2,Same,None,Same,Same,Below,Same,Below,0,Unknown,Unknown,15998,Average,Average,16240,Average,Average,0,Unknown,Unknown
+D C H Regional Medical Center,Tuscaloosa,AL,Government,2,Below,Above,Below,Below,Below,Below,Above,23789,Average,Average,17324,Average,Average,17067,Average,Average,24121,Average,Higher
+Hale County Hospital,Greensboro,AL,Government,3,Same,None,Above,None,Below,Same,None,0,Unknown,Unknown,16332,Average,Average,15713,Average,Average,0,Unknown,Unknown
+Elmore Community Hospital,Wetumpka,AL,Government,4,Same,None,Above,Same,Same,Above,None,0,Unknown,Unknown,14216,Average,Lower,13707,Average,Lower,0,Unknown,Unknown
+D W Mcmillan Memorial Hospital,Brewton,AL,Government,3,Same,None,Same,Same,Same,Above,Same,23399,Average,Average,15482,Average,Average,16410,Worse,Average,0,Unknown,Unknown
+Thomas Hospital,Fairhope,AL,Private,3,Same,Same,Above,Above,Same,Same,Below,22488,Average,Average,16982,Average,Average,16982,Average,Average,19567,Average,Lower
+Citizens Baptist Medical Center,Talladega,AL,Private,3,Same,None,Same,Same,Same,Above,Same,0,Unknown,Unknown,15057,Average,Average,16717,Average,Average,0,Unknown,Unknown
+J Paul Jones Hospital,Camden,AL,Unknown,-1,None,None,None,None,Same,Above,None,0,Unknown,Unknown,0,Unknown,Unknown,15309,Average,Average,0,Unknown,Unknown
+Princeton Baptist Medical Center,Birmingham,AL,Church,2,Same,Below,Above,Below,Same,Below,Below,24603,Average,Average,16831,Average,Average,18449,Average,Average,24707,Average,Higher
+Grandview Medical Center,Birmingham,AL,Proprietary,2,Same,Above,Below,Above,Above,Same,Same,22177,Average,Average,17573,Average,Average,19014,Average,Higher,20816,Average,Lower
+Prattville Baptist Hospital,Prattville,AL,Government,3,Above,Same,Below,Same,Same,Below,Same,26147,Average,Average,16251,Better,Average,16593,Average,Average,0,Unknown,Unknown
+Pickens County Medical Center,Carrollton,AL,Government,3,Same,None,Same,None,Same,Same,Same,0,Unknown,Unknown,15794,Average,Average,13761,Average,Lower,0,Unknown,Unknown
+Bullock County Hospital,Union Springs,AL,Proprietary,-1,None,None,None,None,Same,Above,Same,0,Unknown,Unknown,0,Unknown,Unknown,0,Unknown,Unknown,0,Unknown,Unknown
+Bryan W. Whitfield Memorial Hospital,Demopolis,AL,Government,3,Same,None,Same,None,Below,Same,Same,0,Unknown,Unknown,16744,Average,Average,17312,Average,Average,0,Unknown,Unknown
+Mobile Infirmary Medical Center,Mobile,AL,Private,1,Same,Below,Below,Above,Same,Below,Below,22788,Average,Average,17664,Average,Higher,18321,Average,Higher,21994,Average,Average
+"Medical West, An Affiliate Of Uab Health System",Bessemer,AL,Government,3,Same,Same,Above,Below,Same,Same,Same,23781,Average,Average,15513,Average,Average,17445,Average,Average,21698,Average,Average
+Vaughan Regional Medical Center Parkway Campus,Selma,AL,Proprietary,2,Same,Above,Same,Below,Same,Same,Above,22320,Average,Average,15207,Average,Lower,17052,Average,Average,0,Unknown,Unknown
+Monroe County Hospital,Monroeville,AL,Government,4,Same,None,Above,Above,Same,Same,Same,0,Unknown,Unknown,15627,Average,Average,16555,Average,Average,0,Unknown,Unknown
+Lakeland Community Hospital,Haleyville,AL,Church,5,Above,None,Above,Same,Same,Above,None,0,Unknown,Unknown,15667,Average,Average,13709,Better,Lower,0,Unknown,Unknown
+Troy Regional Medical Center,Troy,AL,Government,2,Same,Same,Same,Same,Same,Same,Same,0,Unknown,Unknown,15017,Average,Average,15713,Worse,Lower,0,Unknown,Unknown
+Jackson Medical Center,Jackson,AL,Proprietary,3,Same,None,Same,Same,Same,Above,None,0,Unknown,Unknown,16609,Average,Average,15475,Average,Average,0,Unknown,Unknown
+North Baldwin Infirmary,Bay Minette,AL,Private,2,Same,None,Below,Same,Same,Below,Below,0,Unknown,Unknown,13737,Average,Lower,15115,Average,Lower,0,Unknown,Unknown
+St Vincent's St Clair,Pell City,AL,Private,5,Same,None,Above,Above,Same,Same,Below,0,Unknown,Unknown,15483,Average,Average,15561,Average,Lower,0,Unknown,Unknown
+Crestwood Medical Center,Huntsville,AL,Proprietary,2,Same,Below,Below,Below,Same,Below,Same,21174,Average,Lower,15663,Average,Average,15210,Average,Lower,21520,Average,Average
+Hill Hospital Of Sumter County,York,AL,Unknown,-1,None,None,None,None,None,Same,None,0,Unknown,Unknown,0,Unknown,Unknown,0,Unknown,Unknown,0,Unknown,Unknown
+Brookwood Baptist Medical Center,Birmingham,AL,Proprietary,3,Same,Above,Below,Below,Same,Same,Same,23022,Average,Average,16362,Average,Average,16574,Average,Average,21806,Average,Average
+Springhill Memorial Hospital,Mobile,AL,Proprietary,1,Same,Below,Below,Same,Same,Below,Below,22208,Average,Average,17150,Average,Average,17128,Average,Average,23520,Average,Higher
+Rmc Jacksonville,Jacksonville,AL,Proprietary,3,None,None,Same,None,Same,Same,None,0,Unknown,Unknown,0,Unknown,Unknown,16777,Average,Average,0,Unknown,Unknown
+Evergreen Medical Center,Evergreen,AL,Proprietary,3,Same,None,Same,Same,Same,Same,Same,0,Unknown,Unknown,13699,Average,Lower,15301,Average,Lower,0,Unknown,Unknown
+Baptist Medical Center East,Montgomery,AL,Government,4,Same,Above,Same,Above,Same,Below,Same,26578,Average,Average,15956,Average,Average,16268,Better,Lower,0,Unknown,Unknown
+L V Stabler Memorial Hospital,Greenville,AL,Proprietary,2,Same,Below,Below,Same,Same,Same,Same,0,Unknown,Unknown,15118,Average,Average,14794,Average,Lower,21007,Average,Average
+Shoals Hospital,Muscle Shoals,AL,Government,3,Same,Same,Same,Same,Below,Above,Below,0,Unknown,Unknown,16052,Average,Average,16744,Average,Average,26047,Average,Higher
+Russellville Hospital,Russellville,AL,Proprietary,3,Same,Above,Below,Same,Same,Above,Same,0,Unknown,Unknown,14446,Average,Lower,14553,Average,Lower,21921,Average,Average
+Coosa Valley Medical Center,Sylacauga,AL,Unknown,2,Same,Same,Above,Below,Same,Same,Above,22743,Average,Average,17008,Average,Average,17177,Worse,Average,25118,Average,Higher
+Jack Hughston Memorial Hospital,Phenix City,AL,Government,5,None,Above,Above,Above,Below,Same,None,0,Unknown,Unknown,0,Unknown,Unknown,20821,Average,Higher,20830,Average,Lower
+Atmore Community Hospital,Atmore,AL,Government,3,Same,None,Same,Same,Same,Above,Below,0,Unknown,Unknown,14937,Average,Lower,16864,Average,Average,0,Unknown,Unknown
+St Vincent's Chilton,Clanton,AL,Church,-1,None,None,None,Above,Below,Same,None,0,Unknown,Unknown,0,Unknown,Unknown,0,Unknown,Unknown,0,Unknown,Unknown
+Washington County Hospital,Chatom,AL,Government,-1,None,None,None,None,Same,Same,None,0,Unknown,Unknown,0,Unknown,Unknown,0,Unknown,Unknown,0,Unknown,Unknown
+Red Bay Hospital,Red Bay,AL,Government,-1,None,None,None,None,Same,Above,None,0,Unknown,Unknown,0,Unknown,Unknown,19555,Average,Average,0,Unknown,Unknown
+Choctaw General Hospital,Butler,AL,Private,-1,None,None,None,None,Same,Same,None,0,Unknown,Unknown,0,Unknown,Unknown,0,Unknown,Unknown,0,Unknown,Unknown
+St Vincents Blount,Oneonta,AL,Private,4,Same,None,Above,Same,Below,Same,None,0,Unknown,Unknown,17765,Average,Average,17373,Average,Average,0,Unknown,Unknown
+Children's Hospital Of Alabama,Birmingham,AL,Private,-1,None,None,None,None,None,None,None,0,Unknown,Unknown,0,Unknown,Unknown,0,Unknown,Unknown,0,Unknown,Unknown
+University Of S A Children's And Women's Hos,Mobile,AL,Government,-1,None,None,None,None,None,None,None,0,Unknown,Unknown,0,Unknown,Unknown,0,Unknown,Unknown,0,Unknown,Unknown
+Providence Alaska Medical Center,Anchorage,AK,Church,4,Same,Above,Above,Same,Below,Below,Above,23925,Average,Average,15169,Average,Lower,14136,Average,Lower,19274,Average,Lower
+Mat-su Regional Medical Center,Palmer,AK,Unknown,3,Same,Same,Above,Same,Same,Same,Same,21695,Average,Average,13788,Average,Lower,13248,Average,Lower,18669,Average,Lower
+Bartlett Regional Hospital,Juneau,AK,Government,4,Same,Same,Above,Above,Same,Same,Same,0,Unknown,Unknown,16575,Average,Average,13930,Average,Lower,18253,Average,Lower
+Fairbanks Memorial Hospital,Fairbanks,AK,Private,5,Same,Above,Above,Same,Same,Same,Same,23917,Average,Average,13287,Average,Lower,14328,Average,Lower,17262,Average,Lower
+Alaska Regional Hospital,Anchorage,AK,Proprietary,5,Same,Above,Above,Same,Same,Above,None,23733,Average,Average,15786,Average,Average,16098,Average,Average,17888,Average,Lower
+Yukon Kuskokwim Delta Reg Hospital,Bethel,AK,Unknown,3,Same,None,Same,Below,Same,None,None,0,Unknown,Unknown,15154,Average,Average,11547,Average,Lower,0,Unknown,Unknown
+Central Peninsula General Hospital,Soldotna,AK,Unknown,3,Same,Below,Above,Same,Same,Below,Same,0,Unknown,Unknown,15519,Average,Average,14719,Average,Lower,19782,Average,Lower
+Alaska Native Medical Center,Anchorage,AK,Government,2,Same,Below,Above,Below,Same,Below,None,22695,Average,Average,15200,Average,Average,14902,Average,Lower,16861,Average,Lower
+Providence Valdez Medical Center,Valdez,AK,Government,-1,None,None,None,None,None,None,None,0,Unknown,Unknown,0,Unknown,Unknown,0,Unknown,Unknown,0,Unknown,Unknown
+Providence Seward Hospital,Seward,AK,Government,-1,None,None,None,None,None,None,None,0,Unknown,Unknown,0,Unknown,Unknown,0,Unknown,Unknown,0,Unknown,Unknown
+Sitka Community Hospital,Sitka,AK,Government,-1,None,None,None,None,Same,None,None,0,Unknown,Unknown,0,Unknown,Unknown,0,Unknown,Unknown,0,Unknown,Unknown
+Petersburg Medical Center,Petersburg,AK,Government,-1,None,None,None,None,None,None,None,0,Unknown,Unknown,0,Unknown,Unknown,0,Unknown,Unknown,0,Unknown,Unknown
+Wrangell Medical Center,Wrangell,AK,Government,-1,None,None,None,None,None,None,None,0,Unknown,Unknown,0,Unknown,Unknown,0,Unknown,Unknown,0,Unknown,Unknown
+Providence Kodiak Island Medical Ctr,Kodiak,AK,Church,-1,None,None,Same,None,None,None,None,0,Unknown,Unknown,0,Unknown,Unknown,19228,Average,Average,0,Unknown,Unknown
+Cordova Community Medical Center,Cordova,AK,Government,-1,None,None,None,None,None,None,None,0,Unknown,Unknown,0,Unknown,Unknown,0,Unknown,Unknown,0,Unknown,Unknown
+Norton Sound Regional Hospital,Nome,AK,Government,-1,None,None,None,None,None,None,None,0,Unknown,Unknown,0,Unknown,Unknown,16290,Average,Average,0,Unknown,Unknown
+Kanakanak Hospital,Dillingham,AK,Private,-1,None,None,None,None,None,None,None,0,Unknown,Unknown,0,Unknown,Unknown,0,Unknown,Unknown,0,Unknown,Unknown
+Maniilaq Health Center,Kotzebue,AK,Government,-1,None,None,None,None,None,None,None,0,Unknown,Unknown,0,Unknown,Unknown,0,Unknown,Unknown,0,Unknown,Unknown
+Ketchikan Medical Center,Ketchikan,AK,Church,4,Same,None,Above,Same,Same,Same,Same,0,Unknown,Unknown,15531,Average,Average,13946,Average,Lower,18654,Average,Lower
+Samuel Simmonds Memorial Hospital,Barrow,AK,Government,-1,None,None,None,None,None,None,None,0,Unknown,Unknown,0,Unknown,Unknown,0,Unknown,Unknown,0,Unknown,Unknown
+South Peninsula Hospital,Homer,AK,Private,4,None,None,Same,Above,Same,Same,Same,0,Unknown,Unknown,0,Unknown,Unknown,17546,Average,Average,0,Unknown,Unknown
+Mt Edgecumbe Hospital,Sitka,AK,Private,-1,None,None,None,None,Same,None,None,0,Unknown,Unknown,0,Unknown,Unknown,0,Unknown,Unknown,0,Unknown,Unknown
+Banner - University Medical Center Phoenix,Phoenix,AZ,Unknown,2,Same,Below,Above,Below,Same,Below,Below,24922,Average,Average,19328,Average,Higher,19932,Average,Higher,19703,Average,Lower
+Tucson Medical Center,Tucson,AZ,Private,3,Same,Above,Above,Below,Same,Below,Above,24370,Average,Average,18440,Average,Higher,19836,Average,Higher,18934,Average,Lower
+Verde Valley Medical Center,Cottonwood,AZ,Private,5,Same,Above,Above,Below,Same,Same,Same,22775,Average,Average,18014,Average,Average,18286,Average,Average,19306,Average,Lower
+St. Mary's Hospital,Tucson,AZ,Private,2,Below,Below,Above,Below,Same,Below,Same,23302,Average,Average,16213,Average,Average,17563,Average,Average,24843,Average,Higher
+St Joseph's Hospital,Tucson,AZ,Unknown,2,Below,Below,Above,Below,Same,Below,Above,23107,Average,Average,16690,Average,Average,18117,Average,Average,21117,Average,Lower
+Yavapai Regional Medical Center,Prescott,AZ,Private,3,Below,Above,Above,Same,Same,Same,Below,23918,Average,Average,16156,Average,Average,16965,Average,Average,22294,Average,Average
+Yuma Regional Medical Center,Yuma,AZ,Private,3,Same,Above,Above,Below,Same,Below,Below,24631,Average,Average,16966,Average,Average,18413,Average,Higher,22354,Average,Average
+John C. Lincoln North Mountain Hospital,Phoenix,AZ,Private,2,Same,Below,Above,Below,Same,Same,Same,24620,Average,Average,18890,Average,Higher,19963,Average,Higher,22590,Average,Average
+Banner Casa Grande Medical Center,Casa Grande,AZ,Unknown,3,Same,Same,Above,Below,Same,Same,Same,23695,Average,Average,17631,Average,Average,19250,Average,Higher,21849,Average,Average
+Maricopa Medical Center,Phoenix,AZ,Government,3,None,Same,Above,Below,Same,Same,Same,0,Unknown,Unknown,15373,Average,Average,17759,Average,Average,0,Unknown,Unknown
+Flagstaff Medical Center,Flagstaff,AZ,Private,5,Same,Same,Above,Same,Same,Below,Above,24350,Average,Average,17208,Average,Average,16771,Better,Average,18887,Average,Lower
+St. Joseph's Hospital And Medical Center,Phoenix,AZ,Church,2,Same,Below,Above,Same,Same,Below,Same,27437,Average,Higher,18325,Average,Average,20066,Average,Higher,22659,Average,Average
+Abrazo Central Campus,Phoenix,AZ,Proprietary,3,Same,Above,Above,Below,Same,Below,Same,25769,Average,Average,18472,Average,Average,17993,Average,Average,21976,Average,Average
+Chandler Regional Medical Center,Chandler,AZ,Unknown,3,Same,Below,Above,Same,Same,Same,Above,24112,Average,Average,18589,Average,Higher,19621,Average,Higher,19765,Average,Lower
+St Luke's Medical Center,Phoenix,AZ,Proprietary,2,Same,Below,Above,Below,Same,Below,None,26607,Average,Average,18657,Average,Average,18691,Average,Average,19064,Average,Lower
+Scottsdale Osborn Medical Center,Scottsdale,AZ,Proprietary,4,Same,Above,Above,Below,Same,Above,Above,24399,Average,Average,16941,Average,Average,17473,Average,Average,19926,Average,Lower
+Canyon Vista Medical Center,Sierra Vista,AZ,Unknown,1,Below,Below,Below,Below,Same,Below,Below,21489,Average,Lower,16941,Average,Average,17445,Average,Average,20174,Average,Lower
+Kingman Regional Medical Center,Kingman,AZ,Government,2,Same,Below,Above,Same,Same,Same,Below,26281,Average,Higher,16773,Average,Average,15940,Average,Lower,21752,Average,Average
+Banner Boswell Medical Center,Sun City,AZ,Unknown,4,Same,Same,Above,Below,Same,Same,Above,21990,Average,Lower,16604,Average,Average,18168,Average,Higher,18837,Average,Lower
+Summit Healthcare Regional Medical Center,Show Low,AZ,Private,4,Same,Above,Above,Same,Same,Same,Same,24708,Average,Average,15364,Average,Average,16855,Average,Average,21120,Average,Average
+Banner - University Medical Center Tucson Campus,Tucson,AZ,Private,2,Same,Below,Below,Below,Same,Below,Above,23106,Average,Average,17069,Average,Average,17265,Average,Average,19496,Average,Lower
+Banner Desert Medical Center,Mesa,AZ,Private,2,Same,Below,Below,Below,Same,Below,Above,24071,Average,Average,18314,Average,Higher,19400,Average,Higher,20235,Average,Lower
+Mt. Graham Regional Medical Center,Safford,AZ,Government,4,None,Same,Above,Above,Same,Above,Same,0,Unknown,Unknown,0,Unknown,Unknown,16386,Average,Average,20071,Average,Lower
+Havasu Regional Medical Center,Lake Havasu City,AZ,Proprietary,3,Same,Above,Above,Below,Same,Same,Below,23317,Average,Average,15333,Average,Lower,16147,Average,Lower,18805,Average,Lower
+Fort Defiance Indian Hospital,Fort Defiance,AZ,Government,2,Same,None,Below,Same,Below,None,None,0,Unknown,Unknown,0,Unknown,Unknown,11432,Average,Lower,0,Unknown,Unknown
+Tuba City Regional Health Care Corporation,Tuba City,AZ,Unknown,3,None,Above,Below,Below,Below,None,None,0,Unknown,Unknown,13497,Average,Lower,12476,Average,Lower,18456,Average,Lower
+Sells Hospital,Sells,AZ,Unknown,-1,None,None,None,None,None,None,None,0,Unknown,Unknown,0,Unknown,Unknown,0,Unknown,Unknown,0,Unknown,Unknown
+San Carlos Apache Healthcare,Peridot,AZ,Government,-1,None,None,None,None,None,None,None,0,Unknown,Unknown,0,Unknown,Unknown,0,Unknown,Unknown,0,Unknown,Unknown
+Phoenix Indian Medical Center,Phoenix,AZ,Government,-1,None,None,None,Same,Same,None,None,0,Unknown,Unknown,0,Unknown,Unknown,0,Unknown,Unknown,0,Unknown,Unknown
+Abrazo Scottsdale Campus,Phoenix,AZ,Proprietary,3,Same,Same,Above,Below,Same,Below,None,25192,Average,Average,17707,Average,Average,17675,Average,Average,0,Unknown,Unknown
+Chinle Comprehensive Health Care Facility,Chinle,AZ,Government,2,None,None,Below,Below,Below,None,None,0,Unknown,Unknown,0,Unknown,Unknown,11982,Average,Lower,0,Unknown,Unknown
+Northwest Medical Center,Tucson,AZ,Proprietary,2,Below,Above,Above,Below,Same,Same,Same,23260,Average,Average,17054,Worse,Average,18607,Worse,Higher,19558,Average,Lower
+Scottsdale Shea Medical Center,Scottsdale,AZ,Proprietary,4,Above,Above,Below,Below,Same,Above,Above,23301,Average,Average,18707,Average,Higher,17751,Average,Average,21997,Average,Average
+Banner Baywood Medical Center,Mesa,AZ,Private,4,Same,Below,Above,Below,Same,Same,Above,25224,Average,Average,17736,Average,Higher,17531,Average,Average,21605,Average,Average
+Banner Thunderbird Medical Center,Glendale,AZ,Government,2,Same,Below,Above,Below,Same,Below,Above,22732,Average,Average,18262,Average,Higher,19097,Average,Higher,19064,Average,Lower
+Honorhealth Deer Valley Medical Center,Phoenix,AZ,Private,3,Same,Below,Above,Below,Same,Same,Same,24315,Average,Average,18623,Average,Higher,19389,Average,Higher,21815,Average,Average
+Banner Del E. Webb Medical Center,Sun City West,AZ,Private,4,Same,Same,Above,Below,Same,Same,Above,23111,Average,Average,16561,Average,Average,19262,Average,Higher,18592,Average,Lower
+Abrazo Arrowhead Campus,Glendale,AZ,Proprietary,3,Same,Above,Below,Below,Same,Same,Same,25293,Average,Average,19001,Average,Higher,17700,Average,Average,21481,Average,Average
+Western Arizona Regional Medical Center,Bullhead City,AZ,Proprietary,1,Same,Below,Above,Below,Same,Below,Below,26191,Average,Higher,16458,Average,Average,16277,Average,Average,17588,Average,Lower
+Mayo Clinic Hospital,Phoenix,AZ,Private,5,Above,Above,Above,Above,Same,Same,Above,20975,Average,Lower,15598,Better,Lower,17148,Better,Average,19770,Average,Lower
+Banner Heart Hospital,Mesa,AZ,Private,4,Above,Below,Above,Above,None,None,None,24141,Average,Average,18729,Average,Higher,18449,Average,Average,0,Unknown,Unknown
+Arizona Spine And Joint Hospital,Mesa,AZ,Proprietary,-1,None,None,None,Above,None,None,None,0,Unknown,Unknown,0,Unknown,Unknown,0,Unknown,Unknown,19374,Average,Lower
+"Core Institute Specialty Hospital, The",Phoenix,AZ,Proprietary,-1,None,None,None,Above,None,None,None,0,Unknown,Unknown,0,Unknown,Unknown,0,Unknown,Unknown,18058,Average,Lower
+Abrazo West Campus,Goodyear,AZ,Proprietary,3,Same,Above,Above,Below,Same,Below,Above,24973,Average,Average,17291,Average,Average,18045,Average,Average,0,Unknown,Unknown
+Banner-university Medical Center South Campus,Tucson,AZ,Private,2,Same,Same,Same,Below,Same,Below,Same,22734,Average,Average,17866,Average,Average,18266,Average,Average,0,Unknown,Unknown
+Arizona Specialty Hospital,Chandler,AZ,Proprietary,-1,None,None,None,Above,None,None,None,0,Unknown,Unknown,0,Unknown,Unknown,0,Unknown,Unknown,23627,Average,Higher
+Whiteriver Phs Indian Hospital,Whiteriver,AZ,Government,-1,None,None,None,None,Same,None,None,0,Unknown,Unknown,0,Unknown,Unknown,12756,Average,Lower,0,Unknown,Unknown
+Oro Valley Hospital,Oro Valley,AZ,Proprietary,4,Same,Above,Below,Same,Same,Below,Same,23921,Average,Average,15647,Average,Average,15983,Average,Lower,18414,Average,Lower
+Banner Estrella Medical Center,Phoenix,AZ,Private,4,Same,Above,Above,Same,Same,Below,Above,22965,Average,Average,14901,Average,Lower,17055,Average,Average,19066,Average,Lower
+Valley View Medical Center,Fort Mohave,AZ,Proprietary,3,Same,Above,Same,Same,Same,Same,Below,22279,Average,Average,15587,Average,Average,19509,Average,Higher,16785,Average,Lower
+Mercy Gilbert Medical Center,Gilbert,AZ,Church,3,Same,Below,Below,Same,Same,Same,Above,23666,Average,Average,19177,Average,Higher,19714,Average,Higher,20106,Average,Lower
+"Mountain Vista Medical Center, Lp",Mesa,AZ,Proprietary,2,Same,Below,Same,Below,Same,Below,Same,25230,Average,Average,19306,Average,Higher,21986,Average,Higher,20632,Average,Lower
+Banner Gateway Medical Center,Gilbert,AZ,Unknown,3,Same,Same,Above,Same,Same,Below,Above,24001,Average,Average,16029,Average,Average,17796,Average,Average,20712,Average,Average
+Scottsdale Thompson Peak Medical Center,Scottsdale,AZ,Proprietary,5,Same,Above,Above,Above,Same,Above,Above,23570,Average,Average,18980,Average,Higher,17368,Average,Average,19295,Average,Lower
+Banner Ironwood Medical Center,Queen Creek,AZ,Private,4,Same,Same,Above,Above,Same,Same,Same,0,Unknown,Unknown,16042,Average,Average,17906,Average,Average,22450,Average,Average
+O.a.s.i.s. Hospital,Phoenix,AZ,Private,-1,None,None,None,Above,None,None,None,0,Unknown,Unknown,0,Unknown,Unknown,0,Unknown,Unknown,21573,Average,Lower
+Banner Goldfield Medical Center,Apache Junction,AZ,Unknown,4,Same,None,Above,Same,Same,Same,Same,0,Unknown,Unknown,14816,Average,Average,15948,Average,Average,0,Unknown,Unknown
+Dignity Health - Arizona General Hospital,Laveen,AZ,Proprietary,-1,None,None,None,None,Same,Same,None,0,Unknown,Unknown,0,Unknown,Unknown,0,Unknown,Unknown,0,Unknown,Unknown
+Santa Cruz Valley Regional Hospital,Green Valley,AZ,Proprietary,3,Same,None,Above,Below,Below,Same,None,0,Unknown,Unknown,15936,Average,Average,15947,Average,Average,0,Unknown,Unknown
+Western Regional Medical Center,Goodyear,AZ,Proprietary,-1,None,None,None,None,None,None,None,0,Unknown,Unknown,0,Unknown,Unknown,0,Unknown,Unknown,0,Unknown,Unknown
+Wickenburg Community Hospital,Wickenburg,AZ,Private,-1,None,None,Same,Above,None,None,None,0,Unknown,Unknown,0,Unknown,Unknown,18943,Average,Average,0,Unknown,Unknown
+Benson Hospital,Benson,AZ,Private,4,None,None,Above,None,Same,Same,None,0,Unknown,Unknown,0,Unknown,Unknown,12167,Average,Lower,0,Unknown,Unknown
+"Northern Cochise Community Hospital, Inc.",Willcox,AZ,Government,-1,None,None,Same,None,None,None,None,0,Unknown,Unknown,0,Unknown,Unknown,17870,Average,Average,0,Unknown,Unknown
+Page Hospital,Page,AZ,Government,-1,None,None,None,Same,Same,None,None,0,Unknown,Unknown,0,Unknown,Unknown,0,Unknown,Unknown,0,Unknown,Unknown
+Hopi Health Care Center,Polacca,AZ,Government,-1,None,None,None,None,None,None,None,0,Unknown,Unknown,0,Unknown,Unknown,0,Unknown,Unknown,0,Unknown,Unknown
+Parker Indian Health Center,Parker,AZ,Government,-1,None,None,None,None,None,None,None,0,Unknown,Unknown,0,Unknown,Unknown,0,Unknown,Unknown,0,Unknown,Unknown
+Huhu Kam Memorial Hospital,Sacaton,AZ,Government,-1,None,None,None,None,None,None,None,0,Unknown,Unknown,0,Unknown,Unknown,0,Unknown,Unknown,0,Unknown,Unknown
+Sage Memorial Hospital,Ganado,AZ,Private,-1,None,None,None,None,None,Same,None,0,Unknown,Unknown,0,Unknown,Unknown,12636,Average,Lower,0,Unknown,Unknown
+Little Colorado Medical Center,Winslow,AZ,Private,-1,None,None,Same,Same,None,None,None,0,Unknown,Unknown,0,Unknown,Unknown,12863,Average,Lower,0,Unknown,Unknown
+Copper Queen Community Hospital,Bisbee,AZ,Private,3,None,None,Same,None,Same,Same,None,0,Unknown,Unknown,0,Unknown,Unknown,15942,Average,Average,0,Unknown,Unknown
+Holy Cross Hospital,Nogales,AZ,Proprietary,-1,None,None,None,Same,Same,Above,None,0,Unknown,Unknown,0,Unknown,Unknown,0,Unknown,Unknown,0,Unknown,Unknown
+Cobre Valley Regional Medical Center,Globe,AZ,Private,3,Same,None,Same,Same,Same,Same,Same,25331,Average,Average,15589,Average,Average,14815,Average,Lower,22668,Average,Average
+White Mountain Regional Medical Center,Springerville,AZ,Private,4,None,None,Same,None,Same,Same,Same,0,Unknown,Unknown,0,Unknown,Unknown,14510,Average,Lower,0,Unknown,Unknown
+La Paz Regional Hospital,Parker,AZ,Private,2,Same,None,Below,Below,None,None,None,22009,Average,Average,14805,Average,Average,17492,Average,Average,21922,Average,Average
+Banner Payson Medical Center,Payson,AZ,Unknown,-1,None,None,None,None,None,None,None,0,Unknown,Unknown,0,Unknown,Unknown,0,Unknown,Unknown,0,Unknown,Unknown
+Phoenix Children's Hospital,Phoenix,AZ,Private,-1,None,None,None,None,None,None,None,0,Unknown,Unknown,0,Unknown,Unknown,0,Unknown,Unknown,0,Unknown,Unknown
+"Hacienda Children's Hospital, Inc.",Mesa,AZ,Proprietary,-1,None,None,None,None,None,None,None,0,Unknown,Unknown,0,Unknown,Unknown,0,Unknown,Unknown,0,Unknown,Unknown
+Siloam Springs Regional Hospital,Siloam Springs,AR,Unknown,3,Same,Same,Same,Same,Same,Above,Same,0,Unknown,Unknown,15819,Average,Average,18940,Average,Average,23808,Average,Average
+Johnson Regional Medical Center,Clarksville,AR,Government,2,Same,Below,Same,Same,Same,Above,Same,0,Unknown,Unknown,14454,Average,Lower,14254,Average,Lower,24308,Average,Higher
+Washington Regional Medical Center,Fayetteville,AR,Private,2,Below,Below,Above,Same,Same,Same,Below,23918,Average,Average,18251,Worse,Higher,18378,Worse,Average,19837,Better,Lower
+Chi-st Vincent Infirmary,Little Rock,AR,Private,1,Below,Below,Below,Below,Same,Below,Same,26033,Average,Higher,17916,Average,Higher,18833,Average,Higher,17565,Average,Lower
+Mercy Hospital Northwest Arkansas,Rogers,AR,Church,4,Same,Above,Above,Same,Same,Same,Below,24212,Average,Average,17025,Average,Average,18870,Average,Higher,18954,Average,Lower
+Chambers Memorial Hospital,Danville,AR,Private,3,Same,None,Below,Above,Below,Above,None,22946,Average,Average,15741,Average,Average,15028,Average,Lower,0,Unknown,Unknown
+White County Medical Center,Searcy,AR,Private,4,Below,Above,Above,Same,Same,Same,Same,21960,Average,Average,15913,Average,Average,17200,Average,Average,20455,Average,Lower
+Mena Regional Health System,Mena,AR,Government,2,Below,None,Same,None,Same,Above,Same,0,Unknown,Unknown,16334,Worse,Average,16909,Average,Average,0,Unknown,Unknown
+Uams Medical Center,Little Rock,AR,Government,1,Same,Below,Below,Same,Same,Below,Above,23850,Average,Average,16244,Average,Average,18331,Average,Average,17093,Average,Lower

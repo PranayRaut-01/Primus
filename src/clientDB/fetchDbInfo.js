@@ -77,11 +77,10 @@ async function fetchMySQLTableSchemas(dbDetail) {
     SELECT TABLE_NAME AS table_name,
        COLUMN_NAME AS column_name,
        DATA_TYPE AS data_type,
-       COLUMN_KEY AS column_key,
+       COLUMN_KEY AS column_key
 FROM information_schema.COLUMNS
 WHERE TABLE_SCHEMA = DATABASE()
 ORDER BY TABLE_NAME, ORDINAL_POSITION;
-
     `
     
     const result = await queryExecuter(dbDetail, query);

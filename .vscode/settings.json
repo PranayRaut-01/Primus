@@ -1,4 +1,5 @@
 {
     "files.autoSave": "afterDelay",
-    "scm.graph.pageOnScroll": false
+    "scm.graph.pageOnScroll": false,
+    "git.ignoreLimitWarning": true
 }

@@ -3,18 +3,66 @@ import { ChatOpenAI } from "@langchain/openai";
 import { ChatPromptTemplate, MessagesPlaceholder } from "@langchain/core/prompts";
 import { DynamicTool } from "@langchain/core/tools";
 import { createOpenAIFunctionsAgent, AgentExecutor } from "langchain/agents";
-
+import axios from "axios";
 import { queryExecuter } from "../clientDB/connectClientDb.js"
 import { fetchSchemaFromDb } from "../clientDB/fetchDbInfo.js"
 import {DatabaseCredentials} from "../models/dbCreds.js"
 import { errorResolution_prompt } from "../agents/prompt.js";
 import { retrieveRelevantSchema } from "../clientDB/pinecone.js"
 import { generateAgentPrompt,generateJsonPrompt,queryExecuter_prompt } from './prompt.js'
+import { createConnectionString } from "../controller/createdb.js";
+import { asyncRunQuery } from '../agents/newAgent.js'
+import { main } from "./chunkProcessor.js";
+import { Parser } from 'json2csv';
+import * as dotenv from "dotenv";
+dotenv.config();
+
+async function sqlQueryGenerator(input,session_doc,dbDetail) {
+    try {
+        const connectionString = createConnectionString(dbDetail);
+        const requestData = {
+            connection_string: connectionString,
+            query: input,
+            openai_api_key: process.env.OPENAI_API_KEY,
+        };
+        
+        const response = await asyncRunQuery(requestData)
+        console.log("Response:", response.data);
+        session_doc.SQL_query = response.data.SQL_query
+        return response.data.SQL_query;
+    }    
+    catch (error) {
+        console.error(error)
+    }
+}
+
+async function convertJsonToCsv(data) {
+    if (!data || !Array.isArray(data) || data.length === 0) {
+        throw new Error("Invalid JSON schema data");
+    }
+    try {
+        const parser = new Parser();
+        const csv = parser.parse(data);
+        return csv;
+    } catch (error) {
+        console.error("Error converting JSON to CSV:", error.message);
+        return null;
+    }
+}
 
 async function callAgent(input, chat_history=[], schema, dbDetail, llm,session_doc) {
     try {
         const model = new ChatOpenAI(llm.config);
-        const prompts = generateAgentPrompt()
+        let schema = ''
+        if(!session_doc.dbschema){
+            const data =  await fetchSchemaFromDb(dbDetail)
+            schema = await convertJsonToCsv(data)
+            session_doc.dbschema = schema
+            session_doc.save()
+        }else{
+            schema = session_doc.schema
+        }
+        const prompts = generateAgentPrompt(schema)
         const prompt = ChatPromptTemplate.fromMessages([
             ("system", prompts),
             new MessagesPlaceholder("chat_history"),
@@ -22,31 +70,55 @@ async function callAgent(input, chat_history=[], schema, dbDetail, llm,session_d
             new MessagesPlaceholder("agent_scratchpad"),
         ]);
 
-        const customTool = new DynamicTool({
-            name: "sql_query_executor",
-            description: "Execute SQL queries and return results",
-            func: async (input) => {
-                return await getData(input,session_doc,dbDetail,model)
+
+
+        const dataAnalyzer = new DynamicTool({
+            name: "data_analyzer",
+            description: "Analyze the data and generate insights, take the data extrected from db using sql query and user refined query,it return the insights",
+            func: async (query) => {
+                console.log(query)
+                const result = main(session_doc.DB_response?session_doc.DB_response:[], model, query);
+                return result
             }
         });
 
-        const tools = [customTool];
+        const queryGenerator = new DynamicTool({
+            name: "sql_query_generator",
+            description: "Generate SQL queries using refined user input and return, take user input as input and return the SQL query",
+            func: async (input) => {
+                console.log("Input to the sql_query_generator: ", input);
+                const result =  await sqlQueryGenerator(input,session_doc,dbDetail);
+                return result
+            }
+        });
+
+        const customDataExtractor = new DynamicTool({
+            name: "data_extractor",
+            description: "Fetch data from the database using the SQL query, take sql query as input and return the data",
+            func: async (input) => {
+                // const data = convertJsonToCsv(session_doc.DB_response?session_doc.DB_response:[]);
+                console.log("Input to the data_extractor: ", input);
+                const sql_result = await queryExecuter(dbDetail, input);
+
+                if (sql_result && sql_result.length > 0) {
+                    session_doc.SQL_query = input;
+                    session_doc.DB_response = sql_result;
+                    
+                    return "data generated succesfully from data base and saved insession doc, now call the data_analyzer tool with user requirment";
+            }else{
+                return "getting error in fetching data from db"
+            }
+        }
+    });
+
+        const tools = [queryGenerator,customDataExtractor,dataAnalyzer];
 
         const agent = await createOpenAIFunctionsAgent({
             llm: model,
             prompt,
             tools,
-            input: function (i) {
-                const parsedInput = JSON.parse(i.input); // Assuming the input is in JSON format
-
-                return {
-                    input: parsedInput.SQL_query || i.input, // Pass SQL query or other input
-                    dbtype: config.dbtype // Include the database type from configuration
-                };
-            },
         });
 
-        // input = await queryRefine(input,model,JSON.parse(schema))
 
         // Create the executor
         const agentExecutor = new AgentExecutor({
@@ -62,23 +134,13 @@ async function callAgent(input, chat_history=[], schema, dbDetail, llm,session_d
         });
 
         
-        const sqlKeywords = ["SELECT", "JOIN", "WHERE", "GROUP BY", "ORDER BY", "LIMIT"];
+        console.log("Agent response:", response);
 
-        // Create a regular expression pattern to detect SQL queries
-        const sqlPattern = new RegExp(`\\b(${sqlKeywords.join('|')})\\b`, 'i');
+        
+       
+        session_doc.agent_history = `${session_doc.summary?session_doc.summary:response.output}`
+        session_doc.agent = session_doc.summary?session_doc.summary:response.output
 
-        // Check if the input string contains any SQL keywords
-        const query_check = sqlPattern.test(response.output);
-
-        if(query_check){
-            const data = await extractQuery(session_doc,response.output,model)
-            await getData(data.sql_query,session_doc,dbDetail,model)
-            session_doc.agent_history =`${session_doc.summary?session_doc.summary:data.response}`
-            session_doc.agent = session_doc.summary?session_doc.summary:data.response
-        }else{
-            session_doc.agent_history = `${session_doc.summary?session_doc.summary:response.output}`
-            session_doc.agent = session_doc.summary?session_doc.summary:response.output
-        }
 
         if(session_doc.DB_response && session_doc.SQL_query){
             const data = await generateJson(input, session_doc.summary?session_doc.summary:response.output,model)
@@ -97,7 +159,6 @@ async function getData(input, session_doc, dbDetail, model) {
     {
         const maxRetries = 2; 
         let attempt = 0;
-        const chunkSize = 20; // Define chunk size to break large responses
         const executeQuery = async (query) => {
             try {
                 if (attempt > maxRetries) {
@@ -113,37 +174,9 @@ async function getData(input, session_doc, dbDetail, model) {
                     session_doc.SQL_query = query;
                     session_doc.DB_response = sql_result;
                     console.log("Response from SQL query: ", sql_result);
-
-                    
-                        // If the result is large, break it into chunks and summarize
-                        const chunks = chunkData(sql_result, chunkSize);
-                        let insights = [];
-
-                        // Iterate over each chunk and generate insights
-                        const chunkPromises = chunks.map((chunk, index) => {
-                            console.log(`Processing chunk ${index + 1}/${chunks.length}`);
-                            return generateInsightsFromChunk(chunk, model, session_doc.input);
-                        });
-                        
-                        // Wait for all chunk promises to resolve
-                        const chunkInsights = await Promise.all(chunkPromises);
-
-                        // Push the insights from resolved promises into the insights array
-                        insights.push(...chunkInsights);
-                        console.log('All chunks processed successfully');
-
-                        // Combine all insights into a final summary
-                        const finalSummary = insights.join(' \n ');
-                        const finalData = await generateInsightsFromBulk(finalSummary,model,session_doc.input)
-                        // console.log("Summary of insights: ", finalSummary);
-                        session_doc.summary = finalData;
-                        return `Data generated successfully `;
+                    const result = convertJsonToCsv(sql_result);
+                    return result;
                     }
-                    //  else {
-                    //     // If the result is small, return the data directly
-                    //     return `Data generated: ${sql_result}`;
-                    // }
-                // }
                  else {
                     if (sql_result?.message?.includes("ETIMEDOUT")) {
                         attempt++;
@@ -166,63 +199,50 @@ async function getData(input, session_doc, dbDetail, model) {
     }
 }
 
-// Helper function to break data into chunks
-function chunkData(data, chunkSize) {
-    const chunks = [];
-    for (let i = 0; i < data.length; i += chunkSize) {
-        chunks.push(data.slice(i, i + chunkSize));
-    }
-    return chunks;
-}
 
-// Function to generate insights from a chunk using the LLM
-async function generateInsightsFromChunk(chunk, model, query) {
+
+
+
+
+async function generateInsightsFromBulk(data, model, query) {
     try {
-        // Create a prompt message array for the model
-        const prompt = `Summarize the following data and summary should be in brief and must contains some numbers or values in numaric form also not include more than 50 to 100 keywords:
-        Warning : do not mention any currency relate info in response like rs or doller symbol.
-        Here the user input ${query}
-        \n${JSON.stringify(chunk)}
-        
-        `;
-        
-        const response = await model.invoke(prompt);
-        
-        return response.content || "No insights generated";
-    } catch (error) {
-        console.error("Error generating insights: ", error);
-        return "Error generating insights";
-    }
-}
+
+        const dataInput = ``
 
 
-async function generateInsightsFromBulk(chunk, model, query) {
-    try {
         // Create a prompt message array for the model
         const prompt = `
-        You are a seasoned data analyst with extensive experience in transforming raw datasets into valuable insights. Your task is to analyze the provided dataset comprehensively and generate actionable insights that can drive strategic decisions.
+        You are a highly experienced data analyst with 10+ years of expertise in analyzing business data and providing actionable insights. 
+        Below is the dataset and context for your analysis. Perform a thorough analysis and provide a detailed report with the following:
+        CONTEXT : ${query}
+        DATA : ${data}
 
-         Warning : you must not use "$",do not mention any currency relate info in response like rs or doller symbol, round decimal values or decrease decaimal values upto 2 values after devimal.
+        Analysis Requirements:
+        1.Trend Analysis: Identify overall sales trends (increasing, decreasing, or stable). Highlight any seasonal patterns or anomalies.Compare performance between categories (Electronics vs. Apparel).
+        2.Performance Drivers: Analyze the impact of returns and cancellations on sales.Identify key drivers of sales growth or decline.
+        3.Weaknesses and Risks: Point out areas where the business is underperforming (e.g., high returns, low sales in specific categories).Highlight potential risks (e.g., declining sales in a category, high cancellation rates).
+        4.Actionable Recommendations:Suggest the best approach to improve performance (e.g., marketing strategies, product improvements, customer retention). Provide specific steps to address weaknesses and capitalize on strengths.
+        5.Visual Insights (Descriptive): Describe trends and patterns as if visualizing them (e.g., "Sales in Electronics peaked in the second week but dropped sharply in the third week").Use comparisons and percentages to make insights clear (e.g., "Apparel sales increased by 8.2% in the second week").
 
-        Here are the details of the dataset:  
-        - Data Metrics:   
-        - Analysis Period:   
-        - Categories to Compare:   
+        
+        Example Output:
 
-        In your analysis, focus on the following areas:  
-        - Trend Identification: Identify and quantify key trends, noting percentage changes in metrics over time.  (not mandatory)
-        - Comparative Analysis: Compare performance across specified categories and highlight which segments are excelling or underperforming.  (not mandatory)
-        - Performance Metrics: Extract key performance indicators, providing numerical insights and noting significant deviations.  (not mandatory)
-        - Suggestions and Recommendations: Offer practical recommendations with data-backed reasoning for improving performance.  
-        - Anomalies and Opportunities: Identify unexpected data points and suggest corrective actions or improvement opportunities.  
-
-        Warning : do not mention any currency relate info in response like rs or doller symbol.
-
-        Ensure your insights are clear, concise, and presented in a structured format that facilitates understanding. Include relevant numbers, comparisons, and percentage changes with rational explanations to support your findings. 
-        User Requiremnt : ${query}
-        Data :${JSON.stringify(chunk)}
-
-
+        Executive Summary:
+            Electronics sales fluctuated significantly, while Apparel sales remained stable.
+            High return rates in Apparel indicate potential issues with product quality or customer satisfaction.
+        Trend Analysis:
+            Electronics sales peaked in the second week ($13,500) but dropped by 18.5% in the third week.
+            Apparel sales showed consistent growth, with an 8.2% increase in the second week.
+        Weaknesses and Risks:
+            Apparel has a high return rate (10 returns in the first week), which may hurt profitability.
+            Electronics sales are inconsistent, indicating potential supply or demand issues.
+        Recommendations:
+            Improve product quality and customer service for Apparel to reduce returns.
+            Run targeted promotions for Electronics to stabilize sales.
+            Conduct customer surveys to identify reasons for cancellations.
+        Conclusion:
+            Focus on stabilizing Electronics sales and reducing Apparel returns to drive overall growth.
+            Monitor weekly trends closely to identify and address issues early.
 `;
         
         const response = await model.invoke(prompt);
@@ -322,13 +342,13 @@ async function chatHistory(chat_history) {
 async function askQuestion(session_doc) {
     try {
         let {input, chat_history, dbDetail, llm_model} = session_doc
-        if(dbDetail.isPincone && dbDetail.indexName){
-            try {
-                dbDetail.schema = await retrieveRelevantSchema(input, dbDetail.indexName);
-            } catch (error) {
-                console.error("Error fetching schema or updating the database:", error);
-            }
-        }
+        // if(dbDetail.isPincone && dbDetail.indexName){
+        //     try {
+        //         dbDetail.schema = await retrieveRelevantSchema(input, dbDetail.indexName);
+        //     } catch (error) {
+        //         console.error("Error fetching schema or updating the database:", error);
+        //     }
+        // }
         chat_history = await chatHistory(chat_history) 
         session_doc = await callAgent(input, chat_history, JSON.stringify(dbDetail.schema), dbDetail, llm_model,session_doc)
         // console.log(session_doc)
